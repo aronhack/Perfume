@@ -55,6 +55,8 @@ cbyz.os_create_folder(path=[path_resource, path_function,
 def master():
     
     
+    global data_raw, perfume, note
+    
     # Worklist
     # - Add affiliate link
 
@@ -87,6 +89,8 @@ def master():
         if len(chk) > 0:
            print(chk) 
             
+           
+    perfume = data_raw[['id', 'brand', 'series', 'name', 'type']]
         
 
     # Parse Note ......
@@ -100,25 +104,58 @@ def master():
                                      id_key='id', pat=',')    
 
         new_data.columns = ['id', 'note']
-        new_data['type'] = cur_col
+        new_data['note_type'] = cur_col
         note = note.append(new_data)
 
 
-    note = note.reset_index(drop=True)
-        
+    # Inspect
+    chk_size = note \
+                .groupby(['note']) \
+                .size() \
+                .reset_index(name='count')
+
+    chk_size = chk_size \
+                .sort_values(by=['count'], ascending=False) \
+                .reset_index(drop=True)
+                
     
+
+def dashboard():
+    
+    global data_raw, perfume, note
     
     # Level 1. Search Note 
     # - Y:Price / X:heart note 
     # - X:heart note / Y:base note
-        
-    len(note['note'].unique())
+    # - Description: name and link
+    
+    
+    # Level 2. Associal Rule
+    
+    term = '佛手柑'
+    note_type = 'top_note'
+    
+    target_id_df = note[note['note']==term]
+    target_id = target_id_df['id'].tolist()
+    cbyz.df_chk_duplicates(df=target_id_df, cols='id')
+    
+    
+    # Perfume List
+    perfume_list = data_raw[data_raw['id'].isin(target_id)]
+
+
+    # Heatmap
+
+
+
+
 
 
 
 
 if __name__ == '__main__':
     master()
+    dashboard()
 
 
 
