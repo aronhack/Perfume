@@ -36,17 +36,25 @@ import plotly.figure_factory as ff
 
 
 # 設定工作目錄 .....
-path = r'D:\GitHub\Perfume'
-# path = r'/home/rserver/Data_Mining'
 
-
-host = 2
+host = 1
 host = 4
+host = 0
+
+
+if host == 0:
+    path = r'/Users/aron/Documents/GitHub/Perfume'
+elif host == 1:
+    path = r'/home/aronhack/perfume'
+elif host == 4:
+    path = r'D:\GitHub\Perfume'
 
 
 # Codebase
 path_codebase = [path, 
                  path + '/Function',
+                 r'/Users/aron/Documents/GitHub/Arsenal/',
+                 r'/Users/aron/Documents/GitHub/Codebase_YZ',
                  'D:/Data_Mining/Projects/Codebase_YZ']
 
 for i in path_codebase:    
@@ -108,16 +116,16 @@ def dashboard(target, heatmap_num=5):
     
     # Perfume List
     perfume_list = ms.data_raw[ms.data_raw['id'].isin(target_id)]
+    perfume_list = perfume_list[['id', 'brand', 'series', 'name',
+                                 'price', 'top_note', 'heart_note',
+                                 'base_note']]
+    
+    
     cols = [{"name": i, "id": i} for i in perfume_list.columns]
     perfume_list_dict = perfume_list.to_dict('records')    
 
 
-    # Heatmap
-    # https://plotly.com/python/heatmaps/
-    # fig = px.imshow([[1, 20, 30],
-    #                  [20, 1, 60],
-    #                  [30, 60, 1]])    
-
+    # Heatmap ......
     heatmap_data_raw = ms.note[ms.note['id'].isin(target_id)]
     heatmap_data_raw = heatmap_data_raw[~heatmap_data_raw['note'].isin(target)]
     

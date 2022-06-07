@@ -23,6 +23,7 @@ dev = True
 
 # import arsenal as ar
 import codebase_yz as cbyz
+import arsenal as ar
 
 
 # 自動設定區 -------
@@ -35,10 +36,14 @@ def init_path(host=2):
     global _host
     _host = host
     
-    if _host == 2:
-        path = r'/Users/Aron/Documents/GitHub/Perfume'
+    if _host==0:
+        path = r'/Users/aron/Documents/GitHub/Perfume'
+    elif _host == 1:
+        path = r'/home/aronhack/perfume'
     elif _host == 4:
         path = r'D:\GitHub\Perfume'
+        
+    ar.host = _host
         
     
     # Codebase
@@ -84,7 +89,11 @@ def load_data():
 
     note_cols = ['top_note', 'heart_note', 'base_note']
     
-    data_raw = pd.read_excel(path_resource + '/Perfume.xlsx')
+    url = 'https://docs.google.com/spreadsheets/d/19LhV8lWlXv53yGr3UWg5M3GJMHfE8lVPoxvy_K8rt9U/edit?usp=sharing'
+    data_raw = ar.gsheets_get_sheet_data(url, worksheet='Perfume')
+    data_raw = cbyz.df_col_lower(df=data_raw)
+    
+    
     data_raw = data_raw.dropna(subset=['id'])
     data_raw = cbyz.df_conv_col_type(df=data_raw, cols='id', to='int')
     
