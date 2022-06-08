@@ -36,7 +36,7 @@ import plotly.figure_factory as ff
 
 # 設定工作目錄 .....
 host = 1
-host = 4
+# host = 4
 # host = 0
 
 
@@ -88,7 +88,9 @@ cbyz.os_create_folder(path=[path_resource, path_function,
 
 
 
-def dashboard(target, heatmap_num=5):
+# %% Inner Function ------
+
+def dashboard(top_note, heart_note, base_note):
     
     
     # Level 1. Search Note 
@@ -99,34 +101,77 @@ def dashboard(target, heatmap_num=5):
     
     # Level 2. Associal Rule
     
-    # target = '佛手柑'
-    target = cbyz.conv_to_list(target)
-    # note_type = 'top_note'
+    # top_note = '佛手柑'
+    # heart_note = '佛手柑'
+    # base_note = '佛手柑'
+    
+    # top_note = []
+    # heart_note = []
+    # base_note = []
+    
+    top_note = cbyz.conv_to_list(top_note)
+    heart_note = cbyz.conv_to_list(heart_note)
+    base_note = cbyz.conv_to_list(base_note)
+
+    
     
     # 全部的note取交集
-    target_id_df = ms.note[ms.note['note'].isin(target)]
-    target_id_df = target_id_df \
-                    .groupby(['id']) \
-                    .size() \
-                    .reset_index(name='count')
+    target_id_df = ms.note.copy()
     
-    target_id_df = target_id_df[target_id_df['count']==len(target)]
+    if len(top_note) > 0:
+        inner_id = target_id_df[(target_id_df['note'].isin(top_note)) \
+                                   & (target_id_df['note_type']=='top_note')]
+            
+        inner_id = inner_id[['id']].drop_duplicates()
+        target_id_df = target_id_df.merge(inner_id, how='inner', on='id')
+    
+    if len(heart_note) > 0:
+        inner_id = target_id_df[(target_id_df['note'].isin(heart_note)) \
+                                & (target_id_df['note_type']=='heart_note')]
+    
+        inner_id = inner_id[['id']].drop_duplicates()
+        target_id_df = target_id_df.merge(inner_id, how='inner', on='id')
+        
+    if len(base_note) > 0:
+        inner_id = target_id_df[(target_id_df['note'].isin(base_note)) \
+                                & (target_id_df['note_type']=='base_note')]
+    
+        inner_id = inner_id[['id']].drop_duplicates()
+        target_id_df = target_id_df.merge(inner_id, how='inner', on='id')    
+
+    
+    # target_id_df = target_id_df \
+    #                 .groupby(['id']) \
+    #                 .size() \
+    #                 .reset_index(name='count')
+    
+    # target_id_df = target_id_df[target_id_df['count']==len(target)]
     target_id = target_id_df['id'].tolist()
     
     # Perfume List
     perfume_list = ms.data_raw[ms.data_raw['id'].isin(target_id)]
+    
+    # Perfume List
+    perfume_list['name'] = '[' + perfume_list['name'] + '](' \
+        + perfume_list['link'] + ')'    
+    
     perfume_list = perfume_list[['id', 'brand', 'series', 'name',
                                  'price', 'top_note', 'heart_note',
-                                 'base_note']]
+                                 'base_note']]    
     
     
     cols = [{"name": i, "id": i} for i in perfume_list.columns]
+    cols[3]['presentation'] = 'markdown'
+
+    # Update, replace link    
     perfume_list_dict = perfume_list.to_dict('records')    
 
 
     # Heatmap ......
+    print('Update - split heatmap as an independent function')
+    print('Update - replace static top_note')
     heatmap_data_raw = ms.note[ms.note['id'].isin(target_id)]
-    heatmap_data_raw = heatmap_data_raw[~heatmap_data_raw['note'].isin(target)]
+    heatmap_data_raw = heatmap_data_raw[~heatmap_data_raw['note'].isin(top_note)]
     
     
     # Update, temporaily remove top_note
@@ -144,9 +189,15 @@ def dashboard(target, heatmap_num=5):
     
     
     heatmap_data = cbyz.df_cross_join(heart_note, base_note, on='id')
+    heatmap = gen_heatmap(heatmap_data)
     
-    
-    # Limit number of note
+    return perfume_list_dict, cols, heatmap
+
+
+
+def gen_heatmap(heatmap_data, heatmap_num=10):
+
+   # Limit number of note
     heatmap_data = heatmap_data \
                     .groupby(['heart_note', 'base_note']) \
                     .size() \
@@ -189,12 +240,24 @@ def dashboard(target, heatmap_num=5):
               [0.8, '#40E0D0'], 
               [1.0, '#00CED1']]
 
+    x_note = '後調'
+    y_note = '中調'
+
+    layout = go.Layout(
+        xaxis=dict(
+            title=x_note
+        ),
+        yaxis=dict(
+            title=y_note
+        )) 
+
+
     heatmap = go.Figure(data=go.Heatmap(z=heatmap_data.values,
                                         x=x, y=y, hoverongaps=False,
-                                        colorscale=colors))
-
+                                        colorscale=colors),
+                        layout=layout)
     
-    return perfume_list_dict, cols, heatmap
+    return heatmap
 
 
 
@@ -204,8 +267,6 @@ def dashboard(target, heatmap_num=5):
 
 
 # %% Application ----
-
-
 app = Dash()
 
 ms.master(host)
@@ -213,7 +274,7 @@ ms.master(host)
 # ms.perfume
 # ms.note
 
-dashboard(target=ms.unique_note)
+dashboard(top_note=[], heart_note=[], base_note=[])
 
 
 if host == 2:
@@ -229,16 +290,9 @@ if host == 2:
 # tb_cols = list(ms.perfume.columns)
 # tb_data = ms.perfume.to_dict('records')
 
-tb_data, tb_cols, heatmap = dashboard('DEFAULT_VALUE')
+tb_data, tb_cols, heatmap = dashboard([], [], [])
 
 
-
-
-
-# fig = px.imshow([[1, 20, 30],
-#                  [20, 1, 60],
-#                  [30, 60, 1]])
-# fig.show()
 
 
 
@@ -252,10 +306,11 @@ app.layout = html.Div([
     # dcc.Input(id="tick0", type='hidden', value=ms.first_date_lite),    
     dcc.Input(id="dtick", type='hidden', value=20),
     
-    
+
     html.Div([
+        html.Label('前調'),
         dcc.Dropdown(
-            id='note_selector',
+            id='top_note_selector',
             options=ms.unique_note,
             multi=True,
             value=[]
@@ -263,6 +318,30 @@ app.layout = html.Div([
             ], 
         # style=stk_selector_style
         ),
+    html.Div([
+        html.Label('中調'),
+        dcc.Dropdown(
+            id='heart_note_selector',
+            options=ms.unique_note,
+            multi=True,
+            value=[]
+                ),
+            ], 
+        # style=stk_selector_style
+        ),
+    html.Div([
+        html.Label('後調'),
+        dcc.Dropdown(
+            id='base_note_selector',
+            options=ms.unique_note,
+            multi=True,
+            value=[]
+                ),
+            ], 
+        # style=stk_selector_style
+        ),
+
+
 
 
     html.Div([dash_table.DataTable(
@@ -279,10 +358,9 @@ app.layout = html.Div([
                  [30, 60, 1]])],
              id='heatmap'
              ),
-
     
-    # html.Div(id='app_main', 
-    #          style=app_main_style),
+    # html.Button('Convert', id='heatpmap_convert', n_clicks=0),
+    
     
     dcc.Graph(id="graph",
               figure=heatmap),
@@ -305,12 +383,14 @@ app.layout = html.Div([
     # Output('debug', 'value'),
     Output('perfume_list', 'data'),
     Output('graph', 'figure'),
-    Input('note_selector', 'value'),
+    Input('top_note_selector', 'value'),
+    Input('heart_note_selector', 'value'),
+    Input('base_note_selector', 'value'),
     # State('device', 'value')
 )
 
-def update_note(note):
-    tb_data, tb_cols, heatmap = dashboard(note)
+def update_note(top_note, heart_note, base_note):
+    tb_data, tb_cols, heatmap = dashboard(top_note, heart_note, base_note)
     
     return tb_data, heatmap
     
@@ -490,11 +570,25 @@ def update_note(note):
 # %% Exeture ------
     
 
-# Version Note
+def version_note():
+    
+    # Version Note
+    
+    # v0.0100
+    # - Add table
+    # v0.0300
+    # - Add selector for heart note and base note
+    # - Add link
 
-# v0.0100
-# - Add table
+    # v0.0400
+    # - Add axis conversion for heatmap
 
+    
+    # Worklist
+    # - Evolve, daily backup for google sheet 
+    # - Optimize, translation
+    # - Optimize, filter the option of dropdown when selectiong others
+    pass
     
     
 
