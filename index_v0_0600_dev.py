@@ -28,7 +28,7 @@ import plotly.graph_objects as go
 from dash.dependencies import Input, Output, State
 import plotly.figure_factory as ff
 
-# from flask_caching import Cache
+from flask_caching import Cache
 # import urllib.parse as urlparse
 # from urllib.parse import parse_qs
 
@@ -37,7 +37,7 @@ import plotly.figure_factory as ff
 # 設定工作目錄 .....
 host = 1
 host = 4
-host = 0
+# host = 0
 
 
 if host == 0:
@@ -90,7 +90,7 @@ cbyz.os_create_folder(path=[path_resource, path_function,
 
 # %% Inner Function ------
 
-def dashboard(top_note, heart_note, base_note):
+def dashboard(top_note, heart_note, base_note, status=0):
     
     
     # Level 1. Search Note 
@@ -100,7 +100,6 @@ def dashboard(top_note, heart_note, base_note):
     
     
     # Level 2. Associal Rule
-    
     # top_note = '佛手柑'
     # heart_note = '佛手柑'
     # base_note = '佛手柑'
@@ -140,65 +139,67 @@ def dashboard(top_note, heart_note, base_note):
         target_id_df = target_id_df.merge(inner_id, how='inner', on='id')    
 
     
-    # target_id_df = target_id_df \
-    #                 .groupby(['id']) \
-    #                 .size() \
-    #                 .reset_index(name='count')
-    
-    # target_id_df = target_id_df[target_id_df['count']==len(target)]
+
     target_id = target_id_df['id'].unique().tolist()
     
     # Perfume List
     perfume_list = ms.data_raw[ms.data_raw['id'].isin(target_id)]
-    
     perfume_list['name'] = '[' + perfume_list['name'] + '](' \
-        + perfume_list['link'] + ')'    
+                            + perfume_list['link'] + ')'    
     
-    perfume_list = perfume_list[['id', 'brand', 'series', 'name',
-                                 'price', 'top_note', 'heart_note',
-                                 'base_note']]
+    perfume_list = perfume_list[['brand', 'series', 'name',
+                                 'top_note', 'heart_note', 'base_note']]
+    
+    perfume_list.columns = ['品牌', '系列', '名稱', '前調', '中調', '後調']
     
     
     cols = [{"name": i, "id": i} for i in perfume_list.columns]
-    cols[3]['presentation'] = 'markdown'
+    cols[2]['presentation'] = 'markdown'
 
-    # Update, replace link    
+    print('Update, replace link') 
     perfume_list_dict = perfume_list.to_dict('records')    
 
 
     # Heatmap ......
-    print('Update - split heatmap as an independent function')
     print('Update - replace static top_note')
     heatmap_data_raw = ms.note[ms.note['id'].isin(target_id)]
-    heatmap_data_raw = heatmap_data_raw[~heatmap_data_raw['note'].isin(top_note)]
+
+
+    if status == 0:
+        heatmap_data_raw = heatmap_data_raw[heatmap_data_raw['note_type']!='top_note']
+        x_note = 'base_note'
+        y_note = 'heart_note'
+        
+    elif status == 1:
+        heatmap_data_raw = heatmap_data_raw[heatmap_data_raw['note_type']!='heart_note']
+        x_note = 'base_note'
+        y_note = 'top_note'
+        
+    elif status == 2:
+        heatmap_data_raw = heatmap_data_raw[heatmap_data_raw['note_type']!='base_note']
+        x_note = 'heart_note'
+        y_note = 'top_note'
     
+    x_note_df = heatmap_data_raw[heatmap_data_raw['note_type']==x_note]
+    x_note_df = x_note_df[['id', 'note']]
+    x_note_df.columns = ['id', 'x_note']
     
-    # Update, temporaily remove top_note
-    heatmap_data_raw = heatmap_data_raw[heatmap_data_raw['note_type']!='top_note']
-    # heatmap_data['count'] = 1
+    y_note_df = heatmap_data_raw[heatmap_data_raw['note_type']==y_note]
+    y_note_df = y_note_df[['id', 'note']]
+    y_note_df.columns = ['id', 'y_note']    
     
+    heatmap_data = cbyz.df_cross_join(x_note_df, y_note_df, on='id')
+    heatmap_data, heatmap = gen_heatmap(heatmap_data, status)
     
-    heart_note = heatmap_data_raw[heatmap_data_raw['note_type']=='heart_note']
-    heart_note = heart_note[['id', 'note']]
-    heart_note.columns = ['id', 'heart_note']
-    
-    base_note = heatmap_data_raw[heatmap_data_raw['note_type']=='base_note']
-    base_note = base_note[['id', 'note']]
-    base_note.columns = ['id', 'base_note']    
-    
-    
-    heatmap_data = cbyz.df_cross_join(heart_note, base_note, on='id')
-    heatmap = gen_heatmap(heatmap_data)
-    
-    return perfume_list_dict, cols, heatmap
+    return perfume_list_dict, cols, heatmap_data, heatmap
 
 
 
-def gen_heatmap(heatmap_data, heatmap_num=10):
+def gen_heatmap(heatmap_data, status, heatmap_num=10):
 
    # Limit number of note
     heatmap_data = heatmap_data \
-                    .groupby(['heart_note', 'base_note']) \
+                    .groupby(['x_note', 'y_note']) \
                     .size() \
                     .reset_index(name='count')
 
@@ -207,16 +208,15 @@ def gen_heatmap(heatmap_data, heatmap_num=10):
                     .reset_index(drop=True) \
                     .reset_index()
                     
-                    
 
-    x = heatmap_data['base_note'].unique().tolist()
+    x = heatmap_data['x_note'].unique().tolist()
     x = x[:heatmap_num]
     
-    y = heatmap_data['heart_note'].unique().tolist()
+    y = heatmap_data['y_note'].unique().tolist()
     y = y[:heatmap_num]
     
-    heatmap_data = heatmap_data[(heatmap_data['base_note'].isin(x)) \
-                                & (heatmap_data['heart_note'].isin(y))]
+    heatmap_data = heatmap_data[(heatmap_data['x_note'].isin(x)) \
+                                & (heatmap_data['y_note'].isin(y))]
     
     # max_count可能是nan
     max_count = heatmap_data['count'].max()
@@ -224,11 +224,18 @@ def gen_heatmap(heatmap_data, heatmap_num=10):
     print(max_count)
     
     heatmap_data = heatmap_data \
-                    .pivot_table(index='heart_note',
-                                  columns='base_note',
+                    .pivot_table(index='y_note',
+                                  columns='x_note',
                                   values='count',
                                   fill_value=0) 
+                    
 
+    x_label = list(heatmap_data.columns)
+    y_label = list(heatmap_data.index)            
+
+    # In general, Dash properties can only be dash components, strings, 
+    # dictionaries, numbers, None, or lists of those.                    
+    heatmap_data = heatmap_data.values  
     # Set color
     # - color value是否要0-1
     # https://stackoverflow.com/questions/52903820/change-color-scheme-of-heatmap-in-plotly
@@ -239,8 +246,18 @@ def gen_heatmap(heatmap_data, heatmap_num=10):
               [0.8, '#40E0D0'], 
               [1.0, '#00CED1']]
 
-    x_note = '後調'
-    y_note = '中調'
+    if status == 0:
+        x_note = '後調'
+        y_note = '中調'
+        
+    elif status == 1:
+        x_note = '後調'
+        y_note = '前調'
+        
+    elif status == 2:
+        x_note = '中調'
+        y_note = '前調'
+    
 
     layout = go.Layout(
         xaxis=dict(
@@ -251,16 +268,23 @@ def gen_heatmap(heatmap_data, heatmap_num=10):
         )) 
 
 
-    heatmap = go.Figure(data=go.Heatmap(z=heatmap_data.values,
-                                        x=x, y=y, hoverongaps=False,
+    heatmap = go.Figure(data=go.Heatmap(z=heatmap_data,
+                                        x=x_label, y=y_label, hoverongaps=False,
                                         colorscale=colors),
                         layout=layout)
     
-    return heatmap
+    return heatmap_data, heatmap
 
 
 
 # %% Layout ----
+
+
+note_selector_css = {
+    'width': '50%', 
+    'padding-top': '40px', 
+    'display': 'block',
+    }
 
 
 
@@ -276,7 +300,7 @@ ms.master(host)
 dashboard(top_note=[], heart_note=[], base_note=[])
 
 
-if host == 2:
+if host == 1:
     cache = Cache(app.server, config={
         # try 'filesystem' if you don't want to setup redis
         'CACHE_TYPE': 'redis',
@@ -289,7 +313,7 @@ if host == 2:
 # tb_cols = list(ms.perfume.columns)
 # tb_data = ms.perfume.to_dict('records')
 
-tb_data, tb_cols, heatmap = dashboard([], [], [])
+tb_data, tb_cols, init_heatmap_data, init_heatmap = dashboard([], [], [])
 
 
 
@@ -315,7 +339,7 @@ app.layout = html.Div([
             value=[]
                 ),
             ], 
-        # style=stk_selector_style
+        style=note_selector_css
         ),
     html.Div([
         html.Label('中調'),
@@ -326,7 +350,7 @@ app.layout = html.Div([
             value=[]
                 ),
             ], 
-        # style=stk_selector_style
+        style=note_selector_css
         ),
     html.Div([
         html.Label('後調'),
@@ -337,7 +361,7 @@ app.layout = html.Div([
             value=[]
                 ),
             ], 
-        # style=stk_selector_style
+        style=note_selector_css
         ),
 
     html.Div([dash_table.DataTable(
@@ -346,28 +370,14 @@ app.layout = html.Div([
                 data=tb_data,
                 ),    
             ], 
-        # style=stk_selector_style
+        style=note_selector_css
         ),
-  
-    html.Div([px.imshow([[1, 20, 30],
-                 [20, 1, 60],
-                 [30, 60, 1]])],
-             id='heatmap'
-             ),
 
-    dcc.Input(id="heatmap_status", value=0),        
-    html.Button('Convert', id='heatpmap_convert', n_clicks=0),
+    dcc.Input(id="heatmap_status", type='hidden', value=0),        
+    html.Button('切換', id='heatpmap_convert', n_clicks=0),
     
-    
-    dcc.Graph(id="graph",
-              figure=heatmap),
-    
-    # id="graph",
-    # [px.imshow([[1, 20, 30],
-    #              [20, 1, 60],
-    #              [30, 60, 1]])],
-              
-    
+    dcc.Store(id='heatmap_data'),
+    dcc.Graph(id="graph", figure=init_heatmap),
     ]
 )
 
@@ -375,209 +385,51 @@ app.layout = html.Div([
 
 # %% Callback ----
 
-
 @app.callback(
     # Output('debug', 'value'),
     Output('perfume_list', 'data'),
+    Output('heatmap_status', 'value'),
+    # Output('heatmap_data', 'data'),
     Output('graph', 'figure'),
     Input('top_note_selector', 'value'),
     Input('heart_note_selector', 'value'),
     Input('base_note_selector', 'value'),
-    # State('device', 'value')
-)
-
-def update_note(top_note, heart_note, base_note):
-    tb_data, tb_cols, heatmap = dashboard(top_note, heart_note, base_note)
-    
-    return tb_data, heatmap
-    
-    
-
-@app.callback(
-    Output('heatmap_status', 'value'),
     Input('heatpmap_convert', 'n_clicks'),
-    State('heatmap_status', 'value'),
+    State('heatmap_status', 'value')
 )
 
-def heatmap_btn_fun(clicks, status):
-    print('clicke button')
-    status = status + 1
-    return status
+def update_note(top_note, heart_note, base_note, 
+                clicks, status):
+
+    print('clicks', clicks)
     
-    
+    if status == 2:
+        status = 0
+    else:
+        status = status + 1
 
 
+    tb_data, tb_cols, heatmap_data, heatmap = \
+        dashboard(top_note, heart_note, base_note, status)
 
-
-# Output(component_id='stk_selector', component_property='style'),
-# Input(component_id='url', component_property='search'),
-
-# @app.callback(
-#     Output('stk_selector', 'style'),
-#     Output('device', 'value'),    
-#     Input('url', 'search'),
-#     State('device', 'value'),
-#     State('stk_selector', 'style')
-# )
-
-
-# def get_url(url, device, style):
-
-
-#     if url == '':
-#         device = 'desktop'
-#         loc_style = stk_selector_style_desktop
-#         return loc_style
 
     
-#     parsed = urlparse.urlparse(url)
-#     width = parse_qs(parsed.query)['w'][0]
+    # return tb_data, heatmap_data, heatmap
+    return tb_data, status, heatmap
     
+
+
+# %% Debug ------
+
+def debug():
     
-#     if int(width) < 992:
-#         device = 1
-#         loc_style = stk_selector_style_mobile
-#         print('mobile width')
-#         # return mobile_app.layout
-#     else:
-#         device = 0
-#         loc_style = stk_selector_style_desktop
-#         print('desktop width')
-#         # return desktop_app.layout
-        
-
-#     # return ''
-#     return loc_style, device
-        
+    debug_df =  ms.data_raw.copy()
+    debug_df = debug_df[debug_df['top_note'].str.contains('佛手柑')]
     
-# ................
+    pass
 
 
-# @app.callback(
-#     Output('tick0', 'value'),
-#     Output('dtick', 'value'),
-#     Input('data_period', 'value'),
-#     State('device', 'value')
-# )
-
-# def update_tick_attr(device, data_period):
-
-#     # Update, different settings for desktop and mobile    
-#     if device == 0:
-#         if data_period:
-#             return ms.first_date, 240
-#         else:
-#             return ms.first_date_lite, 60
-#     else:
-#         if data_period:
-#             return ms.first_date, 240
-#         else:
-#             return ms.first_date_lite, 100       
-
-
-# # ................
-
-
-# @app.callback(
-#     Output('graph', 'figure'),
-#     Input('stk_selector', 'value'),
-#     State('data_period', 'value'),
-#     State('tick0', 'value'),
-#     State('dtick', 'value'),    
-#     State('device', 'value')
-# )
-
-
-# def update_output(dropdown_value, data_period, tick0, dtick, device):
-
-#     # Figure ......
-#     fig = go.Figure()
-    
-#     for i in range(len(dropdown_value)):
-
-#         s = dropdown_value[i]  
-#         name = ms.stock_list_raw[ms.stock_list_raw['STOCK_SYMBOL']==s]
-#         name = name['STOCK'].tolist()[0]
-        
-        
-#         # Filter Data ......
-#         if data_period:
-#             df = ms.main_data[ms.main_data['STOCK_SYMBOL']==s] \
-#                 .reset_index(drop=True) 
-#         else:
-#             df = ms.main_data_lite[ms.main_data_lite['STOCK_SYMBOL']==s] \
-#                 .reset_index(drop=True)    
-                
-#         trace = go.Candlestick(
-#             x=df['WORK_DATE'],
-#             open=df['OPEN'],
-#             high=df['HIGH'],
-#             low=df['LOW'],
-#             close=df['CLOSE'],
-#             name=name
-#         )
-        
-#         fig.add_trace(trace)
-
-
-
-#     # Layout ------
-    
-#     layout = {'plot_bgcolor': colors['background'],
-#               'paper_bgcolor': colors['background'],
-#               'font': {
-#                   'color': colors['text']
-#                   },
-#               'xaxis':{'title':'日期',
-#                        'fixedrange':True},
-#               'yaxis':{'title':'收盤價',
-#                        'fixedrange':True},
-#               }
-
-
-#     # Legend Layout ......
-#     if device == 0:
-#         legend_style = dict()    
-#     else:
-#         legend_style = dict(
-#             orientation="h",
-#             yanchor="bottom",
-#             y=1.02,
-#             xanchor="right",
-#             x=1
-#         )
-        
-
-#     # 1. In plotly, there are rangebreaks to prevent showing weekends and 
-#     #    holidays, but the weekends and holidays may be different in Taiwan. 
-#     #    As a results, the alternative way to show it is to show as category
-    
-#     fig.layout = dict(xaxis={'type':"category", 
-#                             'categoryorder':'category ascending',
-#                             'tickmode':'linear',
-#                             'tick0':tick0,
-#                             'dtick':dtick,
-#                             })
-
-#     # Plotly doesn't have padding?
-#     # 'padding':{'l':0, 'r':0, 't':20, 'b':20}
-
-#     mobile_layout = {'legend':legend_style,
-#                      'margin':{'l':36, 'r':36, 't':80, 'b':80}
-#                      }
-
-#     fig.update_layout(mobile_layout)
-#     fig.update_layout(xaxis_rangeslider_visible=False)
-
-
-
-#     return fig
-
-
-
-
-
-# %% Exeture ------
+# %% Exetue ------
     
 
 def version_note():
@@ -589,17 +441,21 @@ def version_note():
     # v0.0300
     # - Add selector for heart note and base note
     # - Add link
-
     # v0.0400
     # - Add axis conversion for heatmap
-    
     # v0.0500
     # - Heatmap button
+    # v0.0501
+    # - Dashboard stuck if enable two callbacks
+    # v0.0600
+    # - Optimize layout
     
-    # - Optimize, make width of data table as 100%
     
     # Worklist
     # - Evolve, daily backup for google sheet 
+    # - Evolve, iframe and scrollbar issue
+    #   https://stackoverflow.com/questions/10082155/remove-scrollbar-from-iframe
+    #   https://www.benmarshall.me/responsive-iframes/
     # - Optimize, translation
     # - Optimize, filter the option of dropdown when selectiong others
     pass
