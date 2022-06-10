@@ -39,7 +39,7 @@ from flask_caching import Cache
 # 設定工作目錄 .....
 host = 1
 host = 4
-# host = 0
+host = 0
 
 
 if host == 0:
@@ -409,6 +409,9 @@ app.layout = html.Div([
     
     dcc.Store(id='heatmap_data'),
     dcc.Graph(id="graph", figure=init_heatmap),
+    
+    html.Div(html.Span('Created by Angel & Aron', className='d-block'),
+             className='text-center my-2')
     ]
 )
 
@@ -483,6 +486,9 @@ def version_note():
     
     
     # Worklist
+    # - https://aronhack.pythonanywhere.com/
+    # - Evolve, add Adsense to dash
+    #   https://community.plotly.com/t/how-do-i-add-adsense-snippet-to-dash-app/29699
     # - Evolve, daily backup for google sheet 
     # - Evolve, iframe and scrollbar issue
     #   https://stackoverflow.com/questions/10082155/remove-scrollbar-from-iframe
