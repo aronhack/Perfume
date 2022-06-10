@@ -353,7 +353,8 @@ app.layout = html.Div([
                     ], 
                 style=note_selector_css
                 ),
-            width=4
+            width=12,
+            md=4
             ),
 
 
@@ -369,7 +370,8 @@ app.layout = html.Div([
                     ], 
                 style=note_selector_css
                 ),
-            width=4
+            width=12,
+            md=4
             ),
 
         dbc.Col(
@@ -384,7 +386,8 @@ app.layout = html.Div([
                     ], 
                 style=note_selector_css
                 ),
-            width=4
+            width=12,
+            md=4
             ),
         ],
         className='',
