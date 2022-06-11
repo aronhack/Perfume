@@ -38,7 +38,7 @@ from flask_caching import Cache
 
 # 設定工作目錄 .....
 host = 1
-host = 4
+# host = 4
 host = 0
 
 
@@ -221,7 +221,6 @@ def gen_heatmap(heatmap_data, status, heatmap_num=10):
     # max_count可能是nan
     max_count = heatmap_data['count'].max()
     max_count = 10 if max_count != max_count else max_count
-    print(max_count)
     
     heatmap_data = heatmap_data \
                     .pivot_table(index='y_note',
@@ -260,13 +259,9 @@ def gen_heatmap(heatmap_data, status, heatmap_num=10):
     
 
     layout = go.Layout(
-        xaxis=dict(
-            title=x_note
-        ),
-        yaxis=dict(
-            title=y_note
-        ),
-        height=800
+            xaxis=dict(title=x_note),
+            yaxis=dict(title=y_note),
+            height=500
         ) 
 
 
@@ -390,13 +385,14 @@ app.layout = html.Div([
             md=4
             ),
         ],
-        className='',
+        className='mb-4',
     ),
 
     html.Div([dash_table.DataTable(
                 id='perfume_list',
-                columns=tb_cols,
                 data=tb_data,
+                columns=tb_cols,
+                page_size=10,
                 style_cell={'textAlign': 'left'},
                 ),    
             ], 
@@ -490,7 +486,7 @@ def version_note():
     
     # Worklist
     # - https://aronhack.pythonanywhere.com/
-    # - 防盜機制
+    # - 防盜機制, if all seslector are empty, then show nothing
     # - Add brand filter
     # - 香水名稱要有中文
     # - Evolve, add Adsense to dash
