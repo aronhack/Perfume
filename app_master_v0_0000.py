@@ -76,16 +76,12 @@ def init():
 
 
 
-
 def load_data():
-    
-    
     
     global data_raw, perfume, note, unique_note
     
     # Worklist
     # - Add affiliate link
-
 
     note_cols = ['top_note', 'heart_note', 'base_note']
     
@@ -93,8 +89,7 @@ def load_data():
     data_raw = ar.gsheets_get_sheet_data(url, worksheet='Perfume')
     data_raw = cbyz.df_col_lower(df=data_raw)
     
-    
-    data_raw = data_raw.dropna(subset=['id'])
+    data_raw['id'] = data_raw.index
     data_raw = cbyz.df_conv_col_type(df=data_raw, cols='id', to='int')
     
     # Drop Columns
@@ -112,6 +107,7 @@ def load_data():
         cur_col = note_cols[i]
         data_raw[cur_col] = data_raw[cur_col].str.replace('、', ',')
         data_raw[cur_col] = data_raw[cur_col].str.replace('.', ',')
+        data_raw[cur_col] = data_raw[cur_col].str.replace(' ', '')
         # data_raw[cur_col] = data_raw[cur_col].str.replace('；', ',')
         
         
