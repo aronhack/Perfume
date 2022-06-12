@@ -98,6 +98,15 @@ def load_data():
     data_raw = data_raw.drop(drop_cols, axis=1)
 
 
+    # Replace old link
+    if 'link2' in data_raw.columns:
+        data_raw['link'] = np.where(data_raw['link2']!='',
+                                    data_raw['link2'],
+                                    data_raw['link'])
+        
+        data_raw = data_raw.drop('link', axis=1)
+
+
     # Replace special character as comma .....
     # Update, add df_replace_special for Chinese characters
     # data_raw = cbyz.df_replace_special(df=data_raw, cols=note_cols, value=',')
