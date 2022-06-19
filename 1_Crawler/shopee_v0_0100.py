@@ -1,0 +1,173 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on %(date)s
+
+@author: %(username)s
+"""
+
+
+# % 讀取套件 -------
+import pandas as pd
+import numpy as np
+import sys, time, os, gc
+import time
+import random
+
+
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+from bs4 import BeautifulSoup
+
+
+host = 0
+shopee = 'https://shopee.tw/'
+
+# Path .....
+if host == 0:
+    path = r'/Users/aron/Documents/GitHub/Crawler/1_shopee'
+else:
+    path = '/home/aronhack/stock_forecast/dashboard'
+
+
+# Codebase ......
+path_codebase = [r'/Users/aron/Documents/GitHub/Arsenal/',
+                 r'/Users/aron/Documents/GitHub/Codebase_YZ']
+
+
+for i in path_codebase:    
+    if i not in sys.path:
+        sys.path = [i] + sys.path
+
+
+import codebase_yz as cbyz
+import arsenal as ar
+import arsenal_stock as stk
+
+
+
+# 自動設定區 -------
+path_resource = path + '/Resource'
+path_function = path + '/Function'
+path_temp = path + '/Temp'
+path_export = path + '/Export'
+
+
+cbyz.os_create_folder(path=[path_resource, path_function, 
+                         path_temp, path_export])     
+
+pd.set_option('display.max_columns', 30)
+ 
+
+
+
+
+def master():
+    
+    
+    # Simulate human behaviors
+    # https://www.selenium.dev/documentation/webdriver/actions_api/mouse/
+    # https://stackoverflow.com/questions/51340300/simulate-mouse-movements-in-selenium-using-python
+    
+    
+    url = 'https://docs.google.com/spreadsheets/d/19LhV8lWlXv53yGr3UWg5M3GJMHfE8lVPoxvy_K8rt9U/edit?usp=sharing'
+    terms = ar.gsheets_get_sheet_data(url, worksheet='Term')
+    
+    print('Should handle url encoding issues. Refer to automation > weather')
+    
+    
+    driver = webdriver.Firefox(executable_path=path + '/geckodriver')
+    driver.get(shopee)
+    
+    
+    for i in range(len(terms)):
+        term = terms.loc[i, 'term']
+        crawl_search_result(driver, term)
+        
+    driver.close()
+
+
+
+def crawl_search_result(driver, term):
+    
+    
+    # Search
+    query = driver.find_element_by_class_name('shopee-searchbar-input__input')
+    query.clear()
+    query.send_keys(term)
+    query.send_keys(Keys.RETURN)
+
+
+    # Page Controller
+    # - First page link: https://shopee.tw/[search_term]?page=0
+    term_url = driver.current_url
+    
+    
+    # Page Controller
+    # - page=0 is the firest page
+    item_link = []
+    
+    
+    print('Update, split item name by $ mark')
+    
+    for p in range(10):
+    # for p in range(2000):        
+
+        if p == 0:
+            page_url = term_url
+        elif p > 0:
+            page_url = term_url + '&page=' + str(p)
+            driver.get(page_url)
+            
+        time.sleep(5)
+        soup = BeautifulSoup(driver.page_source, 'lxml')
+        
+            
+        # Prevent errors by lazy loading
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+            
+    
+        # Page number too huge ...
+        # page_url = 'https://shopee.tw/search?keyword=coach&page=2000'
+        # - 找不到結果 / 我們找不到 coachpage 商品 顯示 'coach bag'的搜尋結果。
+        empty = soup.select('.shopee-search-empty-result-section__title')
+        if len(empty) > 0:
+            pass
+            break
+        
+        # Search result is empty
+        # page_url = 'https://shopee.tw/search?keyword=coachpage'
+        # - 我們找不到
+        empty = soup.select('.shopee-search-result-header__text')
+        if len(empty) > 0 and '我們找不到' in empty[0].text:
+            pass
+            break     
+
+        links = soup.find_all(class_='shopee-search-item-result__item')
+        new_link = []
+    
+        # Query Item Info
+        for i in range(len(links)):
+            link = links[i]
+            link = link.findChildren('a', recursive=False)
+            
+            if len(link) > 0:
+                link = link[0]
+            else:
+                continue
+    
+            new_link.append([link.text, link['href']])
+        
+            
+        item_link = item_link + new_link
+        print('page ', p, ' has ', len(new_link), ' items.')
+        time.sleep(random.randint(2, 5))
+        
+    
+    if len(item_link) > 0:
+        item_df = pd.DataFrame(item_link, columns=['name', 'link'])
+        item_df['link'] = shopee + item_df['link']
+        
+        item_df.to_csv(path_export + '/item_df.csv', index=False,
+                       encoding='utf-8-sig')
+    
