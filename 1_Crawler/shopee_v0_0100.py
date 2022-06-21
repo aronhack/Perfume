@@ -25,7 +25,7 @@ shopee = 'https://shopee.tw/'
 
 # Path .....
 if host == 0:
-    path = r'/Users/aron/Documents/GitHub/Crawler/1_shopee'
+    path = r'/Users/aron/Documents/GitHub/Perfume/1_Crawler'
 else:
     path = '/home/aronhack/stock_forecast/dashboard'
 
@@ -61,33 +61,6 @@ pd.set_option('display.max_columns', 30)
 
 
 
-
-def master():
-    
-    
-    # Simulate human behaviors
-    # https://www.selenium.dev/documentation/webdriver/actions_api/mouse/
-    # https://stackoverflow.com/questions/51340300/simulate-mouse-movements-in-selenium-using-python
-    
-    
-    url = 'https://docs.google.com/spreadsheets/d/19LhV8lWlXv53yGr3UWg5M3GJMHfE8lVPoxvy_K8rt9U/edit?usp=sharing'
-    terms = ar.gsheets_get_sheet_data(url, worksheet='Term')
-    
-    print('Should handle url encoding issues. Refer to automation > weather')
-    
-    
-    driver = webdriver.Firefox(executable_path=path + '/geckodriver')
-    driver.get(shopee)
-    
-    
-    for i in range(len(terms)):
-        term = terms.loc[i, 'term']
-        crawl_search_result(driver, term)
-        
-    driver.close()
-
-
-
 def crawl_search_result(driver, term):
     
     
@@ -105,13 +78,14 @@ def crawl_search_result(driver, term):
     
     # Page Controller
     # - page=0 is the firest page
+    global item_link
     item_link = []
     
     
     print('Update, split item name by $ mark')
     
     for p in range(10):
-    # for p in range(2000):        
+    # for p in range(2000):
 
         if p == 0:
             page_url = term_url
@@ -168,6 +142,45 @@ def crawl_search_result(driver, term):
         item_df = pd.DataFrame(item_link, columns=['name', 'link'])
         item_df['link'] = shopee + item_df['link']
         
-        item_df.to_csv(path_export + '/item_df.csv', index=False,
-                       encoding='utf-8-sig')
+        serial = cbyz.get_time_serial(with_time=True)
+        item_df.to_csv(path_export + '/item_df_' + serial + '.csv',
+                       index=False, encoding='utf-8-sig')
     
+
+
+# %% Execute ------
+
+
+def master():
+    
+    # Simulate human behaviors
+    # https://www.selenium.dev/documentation/webdriver/actions_api/mouse/
+    # https://stackoverflow.com/questions/51340300/simulate-mouse-movements-in-selenium-using-python
+    
+    
+    url = 'https://docs.google.com/spreadsheets/d/19LhV8lWlXv53yGr3UWg5M3GJMHfE8lVPoxvy_K8rt9U/edit?usp=sharing'
+    terms = ar.gsheets_get_sheet_data(url, worksheet='Term')
+    
+    print('Should handle url encoding issues. Refer to automation > weather')
+    
+    
+    driver = webdriver.Firefox(executable_path=path + '/geckodriver')
+    driver.get(shopee)
+    
+    
+    for i in range(len(terms)):
+        term = terms.loc[i, 'term']
+        term = term + ' 香水'
+        
+        # url encoding
+        # term = term.replace(' ', '%20')
+        crawl_search_result(driver, term)
+        
+    driver.close()
+
+
+
+if __name__ == '__main__':
+    
+    master()
+
