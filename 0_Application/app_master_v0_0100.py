@@ -119,11 +119,11 @@ def load_data():
         
         
         if i == 0:
-            note_prefix = ['前味：', '前調:']
+            note_prefix = ['前味:', '前味：', '前調:', '前調：']
         elif i == 1:
-            note_prefix = ['中味：', '中調:']
+            note_prefix = ['中味:', '中味：', '中調:', '中調：']
         elif i == 2:
-            note_prefix = ['後味：', '後調:']
+            note_prefix = ['後味:', '後味：', '後調:', '後調：']
             
             
         for n in note_prefix:    
@@ -134,15 +134,11 @@ def load_data():
         data_raw[cur_col] = data_raw[cur_col].str.replace('.', ',')
 
         
-        
-
-        
         # data_raw[cur_col] = data_raw[cur_col].str.replace('；', ',')
-        
-        
         
         # Check「和」
         chk = data_raw[['id', cur_col]]
+        chk = chk.dropna(axis=0)
         chk = chk[chk[cur_col].str.contains('和')]
 
         if len(chk) > 0:

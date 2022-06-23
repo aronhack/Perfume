@@ -20,15 +20,18 @@ from selenium.webdriver.common.keys import Keys
 from bs4 import BeautifulSoup
 
 
-host = 0
+host = 4
+# host = 0
 shopee = 'https://shopee.tw/'
+
 
 # Path .....
 if host == 0:
     path = r'/Users/aron/Documents/GitHub/Perfume/1_Crawler'
-else:
+elif host == 1:
     path = '/home/aronhack/stock_forecast/dashboard'
-
+elif host == 4:
+    path = r'D:\GitHub\Perfume\1_Crawler'
 
 # Codebase ......
 path_codebase = [r'/Users/aron/Documents/GitHub/Arsenal/',
@@ -63,6 +66,9 @@ pd.set_option('display.max_columns', 30)
 
 def crawl_search_result(driver, term):
     
+    term_brand = ''
+    if ' 香水' in term:
+        term_brand = term.replace(' 香水', '')
     
     # Search
     query = driver.find_element_by_class_name('shopee-searchbar-input__input')
@@ -141,10 +147,85 @@ def crawl_search_result(driver, term):
     if len(item_link) > 0:
         item_df = pd.DataFrame(item_link, columns=['name', 'link'])
         item_df['link'] = shopee + item_df['link']
+        item_df['search_term'] = term_brand
         
         serial = cbyz.get_time_serial(with_time=True)
         item_df.to_csv(path_export + '/item_df_' + serial + '.csv',
                        index=False, encoding='utf-8-sig')
+    
+    
+    
+# %% File Management ------
+        
+def combine_file():
+
+    serial = cbyz.get_time_serial(with_time=True)
+    files = cbyz.os_get_dir_list(path=path_export, level=-1, 
+                                 extensions=['csv'], remove_temp=True)
+    
+    files = files['FILES']
+    loc_df = pd.DataFrame()
+
+    for i in range(len(files)):
+        
+        file = files.loc[i, 'PATH']
+        file_serial = file[-19:-4]
+        cur_file = pd.read_csv(file)
+        cur_file['serial'] = file_serial
+        loc_df = loc_df.append(cur_file)
+        
+    if len(loc_df) == 0:
+        return
+
+    data = pd.read_excel(path_resource + '/data.xlsx')
+    
+    # Backup
+    assert 2 < 1, 'Bug，如果synonym要寫在裡面的話，應該要clone一整個檔案'
+    data.to_excel(path_resource + '/Backup/data_' + serial + '.xlsx',
+                  index=False, encoding='utf-8-sig')    
+    
+    data = data.append(loc_df)
+    
+    
+    # Fill Brand
+    brand = data[['serial', 'search_term']]
+    brand.columns = ['serial', 'brand']
+    brand = brand.dropna(axis=0)
+    
+    data = data.drop('brand', axis=1)
+    data = data.merge(brand, how='left', on='serial')
+    
+    # Ensure brand or synonym in name 
+    # data['brand'] = np.where(data['brand'].isin(data['name']))
+    # df.apply(lambda x: x.A in x.B, axis=1)
+    
+
+    # Export
+    data.to_excel(path_resource + '/data.xlsx',
+                  index=False, encoding='utf-8-sig')
+    
+    
+def create_dict():
+    
+    dict_df = pd.read_excel(path_resource + '/dict.xlsx')
+    
+
+    data = pd.read_excel(path_resource + '/data.xlsx')
+    synonym = pd.read_excel(path_resource + '/synonym.xlsx')
+    synonym = synonym.melt()
+    synonym = synonym[['value']]
+
+
+
+    
+
+    dict_df = dict_df[['note']].drop_duplicates()
+    dict_df.to_excel(path_resource + '/dict.xlsx', 
+                     index=False, encoding='utf-8-sig')
+
+    
+    return    
+    
     
 
 
