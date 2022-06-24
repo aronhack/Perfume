@@ -112,16 +112,20 @@ def load_data():
     # data_raw = cbyz.df_replace_special(df=data_raw, cols=note_cols, value=',')
     # - Update，排處理「薑、肉荳蔻；」的符號
     
+    print('Bug - note_prefix沒辦法完全排除，且str_conv_half_width會出錯')
     for i in range(len(note_cols)):
         
         cur_col = note_cols[i]
-        data_raw[cur_col] = data_raw[cur_col].str.replace(' ', '')        
+        data_raw[cur_col] = data_raw[cur_col].str.replace(' ', '')      
+        
+        data_raw[cur_col] = data_raw[cur_col].apply(cbyz.str_conv_half_width)
+        
         
         
         if i == 0:
             note_prefix = ['前味:', '前味：', '前調:', '前調：']
         elif i == 1:
-            note_prefix = ['中味:', '中味：', '中調:', '中調：']
+            note_prefix = ['中味:', '中味：', '中味：', '中調:', '中調：']
         elif i == 2:
             note_prefix = ['後味:', '後味：', '後調:', '後調：']
             

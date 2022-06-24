@@ -35,7 +35,8 @@ elif host == 4:
 
 # Codebase ......
 path_codebase = [r'/Users/aron/Documents/GitHub/Arsenal/',
-                 r'/Users/aron/Documents/GitHub/Codebase_YZ']
+                 r'/Users/aron/Documents/GitHub/Codebase_YZ',
+                 r'D:\GitHub\Arsenal']
 
 
 for i in path_codebase:    

@@ -38,16 +38,16 @@ from flask_caching import Cache
 
 # 設定工作目錄 .....
 host = 1
-# host = 4
-host = 0
+host = 4
+# host = 0
 
 
 if host == 0:
-    path = r'/Users/aron/Documents/GitHub/Perfume'
+    path = r'/Users/aron/Documents/GitHub/Perfume/0_Application'
 elif host == 1:
-    path = r'/home/aronhack/perfume'
+    path = r'/home/aronhack/perfume/0_Application'
 elif host == 4:
-    path = r'D:\GitHub\Perfume'
+    path = r'D:\GitHub\Perfume\0_Application'
 
 
 # Codebase
