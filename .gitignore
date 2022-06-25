@@ -1,0 +1,10 @@
+
+2_NLP/Resource/data/embedding_character/token_list.npy
+2_NLP/Resource/data/embedding_character/vector_list.npy
+2_NLP/Resource/data/embedding_word/token_list.npy
+2_NLP/Resource/data/embedding_word/vector_list.npy
+2_NLP/Resource/data/model_ner/model_ontochinese_Att-0_BiLSTM-2-500_batch128-run1.data-00000-of-00001
+2_NLP/Resource/data/model_ner/model_ontochinese_Att-0_BiLSTM-2-500_batch128-run1.index
+2_NLP/Resource/data/model_ner/model_ontochinese_Att-0_BiLSTM-2-500_batch128-run1.meta
+2_NLP/Resource/data/model_ws/model_asbc_Att-0_BiLSTM-cross-2-500_batch128-run1.data-00000-of-00001
+2_NLP/Resource/data/model_pos/model_asbc_Att-0_BiLSTM-2-500_batch256-run1.data-00000-of-00001
