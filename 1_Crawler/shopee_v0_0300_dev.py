@@ -179,6 +179,11 @@ def combine_file():
         return
 
     loc_df = loc_df[~loc_df['title'].str.contains('廣告')]
+    # loc_df = loc_df[~loc_df['title'].str.contains('蝦皮優選')]
+    loc_df = loc_df[~loc_df['title'].isna()]
+
+    # 新北市汐止區找相似
+    # loc_df = loc_df[~loc_df['title'].str.contains('找相似')]
 
 
     data = pd.read_excel(path_resource + '/data.xlsx')
