@@ -17,8 +17,6 @@ import h5py
 
 
 # 設定工作目錄 .....
-dev = False
-dev = True
 
 
 # import arsenal as ar

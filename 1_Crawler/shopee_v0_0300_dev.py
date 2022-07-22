@@ -21,7 +21,7 @@ from bs4 import BeautifulSoup
 
 
 host = 4
-# host = 0
+host = 0
 shopee = 'https://shopee.tw/'
 
 
@@ -151,7 +151,7 @@ def crawl_search_result(driver, term):
         item_df['search_term'] = term_brand
         
         serial = cbyz.get_time_serial(with_time=True)
-        item_df.to_csv(path_export + '/item_df_' + serial + '.csv',
+        item_df.to_csv(path_temp + '/item_df_' + serial + '.csv',
                        index=False, encoding='utf-8-sig')
     
     
@@ -249,7 +249,6 @@ def create_dict():
 
 
 def master():
-    
     # Simulate human behaviors
     # https://www.selenium.dev/documentation/webdriver/actions_api/mouse/
     # https://stackoverflow.com/questions/51340300/simulate-mouse-movements-in-selenium-using-python
@@ -257,11 +256,22 @@ def master():
     
     # v0.0200
     # - Add NLP function
-
     # v0.0300
     # - Remove rows with 廣告
     
     
+    # v0.4000
+    # - Add note master
+    
+    # Worklist
+    # - Automation affiliate program with Selenium
+    
+
+    
+    master_item()
+
+
+def master_item():
     
     url = 'https://docs.google.com/spreadsheets/d/19LhV8lWlXv53yGr3UWg5M3GJMHfE8lVPoxvy_K8rt9U/edit?usp=sharing'
     terms = ar.gsheets_get_sheet_data(url, worksheet='Term')
@@ -269,7 +279,37 @@ def master():
     print('Should handle url encoding issues. Refer to automation > weather')
     
     
+    # If show error message as below, download the file again
+    # > WebDriverException: 'geckodriver' executable may have wrong permissions. 
     driver = webdriver.Firefox(executable_path=path + '/geckodriver')
+    
+    driver.get(shopee)
+    
+    
+    for i in range(len(terms)):
+        term = terms.loc[i, 'term']
+        term = term + ' 香水'
+        
+        # url encoding
+        # term = term.replace(' ', '%20')
+        crawl_search_result(driver, term)
+        
+    driver.close()
+
+
+
+def master_note():
+    
+    url = 'https://docs.google.com/spreadsheets/d/19LhV8lWlXv53yGr3UWg5M3GJMHfE8lVPoxvy_K8rt9U/edit?usp=sharing'
+    terms = ar.gsheets_get_sheet_data(url, worksheet='Term')
+    
+    print('Should handle url encoding issues. Refer to automation > weather')
+    
+    
+    # If show error message as below, download the file again
+    # > WebDriverException: 'geckodriver' executable may have wrong permissions. 
+    driver = webdriver.Firefox(executable_path=path + '/geckodriver')
+    
     driver.get(shopee)
     
     

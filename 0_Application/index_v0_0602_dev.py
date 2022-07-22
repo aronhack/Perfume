@@ -39,7 +39,7 @@ from flask_caching import Cache
 # 設定工作目錄 .....
 host = 1
 host = 4
-# host = 0
+host = 0
 
 
 if host == 0:
@@ -54,8 +54,8 @@ elif host == 4:
 path_codebase = [path, 
                  path + '/Function',
                  r'/Users/aron/Documents/GitHub/Arsenal/',
-                 r'/Users/aron/Documents/GitHub/Codebase_YZ',
-                 r'D:/Data_Mining/Projects/Codebase_YZ',
+                 r'/Users/aron/Documents/GitHub/Codebase',
+                 r'D:/Data_Mining/Projects/Codebase',
                  r'D:\GitHub\Arsenal']
 
 for i in path_codebase:    
