@@ -482,6 +482,12 @@ def version_note():
     # v0.0602
     # - Remove blank in the note
     # - Remove id in the google sheet
+
+
+    # v0.0603
+    # - Update for new structure of google sheet
+    # - Add name dropdown - Not yet
+    
     
     # v0.0700
     # - Handle momoshop affiliate link

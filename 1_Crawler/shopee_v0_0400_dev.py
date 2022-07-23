@@ -23,7 +23,10 @@ from bs4 import BeautifulSoup
 
 host = 4
 host = 0
-shopee = 'https://shopee.tw/'
+
+# Home page may contain pop-up messeage, and it will cause error
+shopee_home = 'https://shopee.tw/'
+shopee_search = 'https://shopee.tw/search?keyword=%E9%A6%99%E6%B0%B4'
 
 
 # Path .....
@@ -147,7 +150,7 @@ def crawl_search_result(driver, term, page_limit=20):
     
     if len(item_link) > 0:
         item_df = pd.DataFrame(item_link, columns=['title', 'link'])
-        item_df['link'] = shopee + item_df['link']
+        item_df['link'] = shopee_home + item_df['link']
         item_df['search_term'] = term_brand
         
         serial = cbyz.get_time_serial(with_time=True)
@@ -252,7 +255,7 @@ def master_item():
     
     url = 'https://docs.google.com/spreadsheets/d/19LhV8lWlXv53yGr3UWg5M3GJMHfE8lVPoxvy_K8rt9U/edit?usp=sharing'
     terms = ar.gsheets_get_sheet_data(url, worksheet='Term')
-    terms = terms[terms['active']==1]
+    terms = terms[terms['active']==1].reset_index(drop=True)
     
     if len(terms) == 0:
         return
@@ -265,29 +268,24 @@ def master_item():
     # > WebDriverException: 'geckodriver' executable may have wrong permissions. 
     driver = webdriver.Firefox(executable_path=path + '/geckodriver')
     
-    driver.get(shopee)
+    driver.get(shopee_search)
     
     
     for i in range(len(terms)):
         term = terms.loc[i, 'term']
-        # term = term + ' 香水'
+        term = term + ' 香水'
+        # term = term + ' 香精'
+        # term = term + ' 古龍水'
         
         # url encoding
         # term = term.replace(' ', '%20')
-        crawl_search_result(driver, term, page_limit=50)
+        crawl_search_result(driver, term, page_limit=20)
         
     driver.close()
 
 
-def item_clean():
-
-    item_df.to_csv(path_temp + '/item_df_' + serial + '.csv',
-                   index=False, encoding='utf-8-sig')    
-
-
 
 def master_note():
-    
     
     # - Bug
      # Error: TimedPromise timed out after 300000 ms
@@ -301,10 +299,9 @@ def master_note():
 
     # Get all files
     files = cbyz.os_get_dir_list(path=path_temp, level=0, extensions=['csv'], 
-                                 remove_temp=True, contains='item_df_clean')
+                                 remove_temp=True, contains='item_df')
     
     files = files['FILES']
-    
     print('Bug - 有些頁面中會有多支香水')
     
     for i in range(len(files)):
@@ -393,8 +390,6 @@ def master_note():
     
 
 
-
-
 def master():
     # Simulate human behaviors
     # https://www.selenium.dev/documentation/webdriver/actions_api/mouse/
@@ -405,13 +400,14 @@ def master():
     # - Add NLP function
     # v0.0300
     # - Remove rows with 廣告
-    
-    
     # v0.0400
     # - Add note master
-    # v0.0500
     # - Add term switch
-
+    
+    # v0.0500
+    # - Add gender detection in master_note
+    # - 有些香調可能會少打，需要compare length
+    # - Remove emoji after merging
     
     # Worklist
     # - Automation affiliate program with Selenium
@@ -420,6 +416,22 @@ def master():
     master_note()
 
 
+
+# def fix():
+
+#     files = cbyz.os_get_dir_list(path=path_temp + '/20220723', level=0, extensions=['csv'], 
+#                                  remove_temp=True, contains='item_df')
+    
+#     files = files['FILES']
+    
+#     for i in range(len(files)):
+        
+#         df = pd.read_csv(files.loc[i, 'PATH'])
+#         df['link'] = df['link'].str.replace('https://shopee.tw/search?keyword=%E9%A6%99%E6%B0%B4', 'https://shopee.tw',
+#                                             regex=False)
+#         df.to_csv(path_temp + '/' + files.loc[i, 'FILE_NAME'],
+#                   index=False, encoding='utf-8-sig')
+    
 
 
 

@@ -76,6 +76,16 @@ def master():
     # - Beginning
     # v1.0000
     # - Rewrite successfule rows of NER to a seperate sheet
+    
+    
+    # v2.0000
+    # - affiliate link用銷售量最好的
+
+
+    print('Bug - title中的已售出數字會讓title對不上')
+    print('Optimize - prevent 試香 or 小香')
+    
+
 
     # Sheet Data
     url = 'https://docs.google.com/spreadsheets/d/19LhV8lWlXv53yGr3UWg5M3GJMHfE8lVPoxvy_K8rt9U/edit?usp=sharing'
@@ -119,17 +129,15 @@ def master():
 
 
     # NER ......
-    path_ner = path_nlp + '/Export'
-    path_ner = cbyz.os_get_dir_list(path=path_ner, level=0,
-                                     extensions='xlsx', contains='ner_master')
-    path_ner = path_ner['FILES']
-    ner = pd.DataFrame()
+    path_ner = path_nlp + '/Export/'
+    ner_done = pd.read_excel(path_ner + 'ner_done.xlsx')
+    ner_remove = pd.read_excel(path_ner + 'ner_remove.xlsx')
 
-    for i in range(len(path_ner)):
-        new_df = pd.read_excel(path_ner.loc[i, 'PATH'])
-        ner = ner.append(new_df)        
-
-
+    ner_pool = pd.read_excel(path_ner + 'ner_pool.xlsx')
+    ner_pool = ner_pool.dropna(subset=['title'], axis=0)
+    
+    
+    ner = ner_done.append(ner_pool)
     ner = ner.dropna(subset=['title'])
     ner = ner[ner['title']!='']
     ner = ner[['title', 'brand', 'name', 'name_en']]
@@ -180,13 +188,14 @@ def master():
 
     print('Optimize - there are emoji in the note')
 
-    main_df = main_df \
+    main_df = main_df[main_df['name']!=''] \
         .dropna(subset=['name', 'gender', 'type'], axis=0) \
         .sort_values(by=['name', 'priority']) \
-        .drop_duplicates(subset=['brand', 'name'])        .reset_index(drop=True)
+        .drop_duplicates(subset=['brand', 'name']) \
+        .reset_index(drop=True)
 
-    main_df['name'] = main_df['name'] + main_df['gender'] + main_df['type']
-    main_df = main_df[['brand', 'name', 'gender', 'type', 'link',
+    main_df['full_name'] = main_df['name'] + main_df['gender'] + main_df['type']
+    main_df = main_df[['title', 'brand', 'name', 'gender', 'type', 'link',
                        'top_note', 'heart_note', 'base_note']]
 
     ar.gsheets_sheet_write(data=main_df, url=url, worksheet='Perfume', 
@@ -194,8 +203,63 @@ def master():
                            append=False)
 
 
-    print('Bug - title中的已售出數字會讓title對不上')
-    print('Optimize - prevent 試香 or 小香')
+    # Update NER Sheet ......
+    title_done = main_df[['title']].dropna(axis=0)
+    
+    # Done ...
+    ner_done_new = ner_pool.merge(title_done, on='title')
+    ner_done = ner_done.append(ner_done_new)
+    ner_done = ner_done \
+        .dropna(subset=['name'], axis=0) \
+        .drop_duplicates(subset='title')
+    
+    ner_done.to_excel(path_ner + 'ner_done.xlsx',
+                      index=False, encoding='utf-8-sig')
+    
+    
+    # Pool And Remove ...
+    ner_pool = cbyz.df_anti_merge(ner_pool, title_done, on='title')
+    
+    # 因為main_df中包含manually的部份，也需要一起加入remove中
+    main_unique = main_df[['brand', 'name']]
+    unique_brand = ner_pool[['brand']].drop_duplicates().reset_index(drop=True)
+    
+    ner_remove_new = pd.DataFrame()
+    ner_pool_new = pd.DataFrame()
+    
+    for i in range(len(unique_brand)):
+        
+        cur_brand = unique_brand.loc[i, 'brand']
+        
+        loc_main_unique = \
+            main_unique[main_unique['brand']==cur_brand]
+        
+        print('Bug - 男香和女香可能會有一樣的名字，像是同名經典，在這裡會出錯')
+        loc_name = loc_main_unique['name'].tolist()
+        regex = '|'.join(loc_name)
+
+        loc_pool = ner_pool[ner_pool['brand']==cur_brand]
+        
+        pool_new = loc_pool[~loc_pool['title'].str.contains(regex)]
+        remove_new = loc_pool[loc_pool['title'].str.contains(regex)]
+        
+        ner_pool_new = ner_pool_new.append(pool_new)
+        ner_remove_new = ner_remove_new.append(remove_new)
+        
+    # Oraganize
+    ner_remove = ner_remove.append(ner_remove_new)
+    ner_remove = ner_remove.drop_duplicates(subset='title')
+    
+    ner_pool_new = ner_pool_new.sort_values(by=['brand', 'name']) 
+        
+    # Export
+    ner_remove.to_excel(path_ner + 'ner_remove.xlsx',
+                        index=False, encoding='utf-8-sig')
+    
+    ner_pool_new.to_excel(path_ner + 'ner_pool.xlsx',
+                          index=False, encoding='utf-8-sig') 
+    
+    
 
 
 if __name__ == '__main__':
