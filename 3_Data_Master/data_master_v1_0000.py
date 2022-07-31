@@ -67,8 +67,6 @@ pd.set_option('display.max_columns', 30)
  
 
 
-
-
 def master():
     
     
@@ -80,6 +78,8 @@ def master():
     
     # v2.0000
     # - affiliate link用銷售量最好的
+    
+    # - Add capitalize() function, and write a function to modify old data
 
 
     print('Bug - title中的已售出數字會讓title對不上')
@@ -89,29 +89,29 @@ def master():
 
     # Sheet Data
     url = 'https://docs.google.com/spreadsheets/d/19LhV8lWlXv53yGr3UWg5M3GJMHfE8lVPoxvy_K8rt9U/edit?usp=sharing'
-    sheet_raw = ar.gsheets_get_sheet_data(url, worksheet='Perfume Manually')
-    sheet_raw['title'] = np.nan
-    sheet = sheet_raw[['brand', 'name', 'type', 'gender', 'link',
-                       'top_note', 'heart_note', 'base_note']]
+    # sheet_raw = ar.gsheets_get_sheet_data(url, worksheet='Perfume Manually')
+    # sheet_raw['title'] = np.nan
+    # sheet = sheet_raw[['brand', 'name', 'type', 'gender', 'link',
+    #                    'top_note', 'heart_note', 'base_note']]
     
-    sheet['top_note'] = sheet['top_note'].apply(cbyz.str_conv_half_width)
-    sheet['heart_note'] = sheet['heart_note'].apply(cbyz.str_conv_half_width)
-    sheet['base_note'] = sheet['base_note'].apply(cbyz.str_conv_half_width)
+    # sheet['top_note'] = sheet['top_note'].apply(cbyz.str_conv_half_width)
+    # sheet['heart_note'] = sheet['heart_note'].apply(cbyz.str_conv_half_width)
+    # sheet['base_note'] = sheet['base_note'].apply(cbyz.str_conv_half_width)
 
-    sheet['top_note'] = sheet['top_note'].str.replace(' ', '')
-    sheet['heart_note'] = sheet['heart_note'].str.replace(' ', '')
-    sheet['base_note'] = sheet['base_note'].str.replace(' ', '')
+    # sheet['top_note'] = sheet['top_note'].str.replace(' ', '')
+    # sheet['heart_note'] = sheet['heart_note'].str.replace(' ', '')
+    # sheet['base_note'] = sheet['base_note'].str.replace(' ', '')
     
-    sheet = sheet \
-        .rename(columns={'type':'type_sheet',
-                         'gender':'gender_sheet'})
-    sheet['priority'] = 0
+    # sheet = sheet \
+    #     .rename(columns={'type':'type_sheet',
+    #                      'gender':'gender_sheet'})
+    # sheet['priority'] = 0
 
     
     # Note ......
-    path_note = path_crawler + '/Export'
+    path_note = path_crawler + '/Temp/Note'
     path_note = cbyz.os_get_dir_list(path=path_note, level=0,
-                                     extensions='csv', contains='master_note')
+                                     extensions='csv', contains='note_')
     path_note = path_note['FILES']
     
     # Loop
@@ -125,6 +125,7 @@ def master():
     note = note[note['title']!='']
     
     # Bug
+    note['top_note'] = note['top_note'].astype('str')
     note = note[~note['top_note'].str.contains('蝦皮購物')]
 
 
@@ -136,15 +137,16 @@ def master():
     ner_pool = pd.read_excel(path_ner + 'ner_pool.xlsx')
     ner_pool = ner_pool.dropna(subset=['title'], axis=0)
     
+    ner_pool.isnull().sum()
     
     ner = ner_done.append(ner_pool)
-    ner = ner.dropna(subset=['title'])
+    ner = ner.dropna(subset=['title', 'link'])
     ner = ner[ner['title']!='']
-    ner = ner[['title', 'brand', 'name', 'name_en']]
+    ner = ner[['link', 'title', 'brand', 'name', 'name_en']]
 
 
     # Combine
-    main_df = ner.merge(note, on='title')
+    main_df = ner.merge(note, on=['link', 'title'])
     main_df = main_df[['title', 'brand', 'name', 'link',
                        'top_note', 'heart_note', 'base_note']]
     
@@ -164,7 +166,7 @@ def master():
                                value=['男性', '女性', '中性'],
                                col='gender')
     
-    main_df = main_df.append(sheet)
+    # main_df = main_df.append(sheet)
     
     
     print('Optimize this with character set')
@@ -176,14 +178,13 @@ def master():
     main_df['base_note'] = main_df['base_note'].str.replace('後味:', '')
     
     
-    
-    main_df['gender'] = np.where(main_df['gender'].isna(),
-                                 main_df['gender_sheet'],
-                                 main_df['gender'])
+    # main_df['gender'] = np.where(main_df['gender'].isna(),
+    #                              main_df['gender_sheet'],
+    #                              main_df['gender'])
 
-    main_df['type'] = np.where(main_df['type'].isna(),
-                                 main_df['type_sheet'],
-                                 main_df['type'])
+    # main_df['type'] = np.where(main_df['type'].isna(),
+    #                              main_df['type_sheet'],
+    #                              main_df['type'])
 
 
     print('Optimize - there are emoji in the note')
@@ -204,10 +205,11 @@ def master():
 
 
     # Update NER Sheet ......
-    title_done = main_df[['title']].dropna(axis=0)
+    title_done = main_df[['title', 'link']].dropna(axis=0)
+    # title_done = main_df[['link']].dropna(axis=0)
     
     # Done ...
-    ner_done_new = ner_pool.merge(title_done, on='title')
+    ner_done_new = ner_pool.merge(title_done, on=['link', 'title'])
     ner_done = ner_done.append(ner_done_new)
     ner_done = ner_done \
         .dropna(subset=['name'], axis=0) \
@@ -218,30 +220,37 @@ def master():
     
     
     # Pool And Remove ...
-    ner_pool = cbyz.df_anti_merge(ner_pool, title_done, on='title')
+    ner_pool = cbyz.df_anti_merge(ner_pool, title_done, on=['title', 'link'])
     
-    # 因為main_df中包含manually的部份，也需要一起加入remove中
     main_unique = main_df[['brand', 'name']]
     unique_brand = ner_pool[['brand']].drop_duplicates().reset_index(drop=True)
     
     ner_remove_new = pd.DataFrame()
     ner_pool_new = pd.DataFrame()
     
+    chk = 0
+    
     for i in range(len(unique_brand)):
         
         cur_brand = unique_brand.loc[i, 'brand']
+        loc_pool = ner_pool[ner_pool['brand']==cur_brand]
+        
+        chk = chk + len(loc_pool)
         
         loc_main_unique = \
             main_unique[main_unique['brand']==cur_brand]
         
         print('Bug - 男香和女香可能會有一樣的名字，像是同名經典，在這裡會出錯')
         loc_name = loc_main_unique['name'].tolist()
-        regex = '|'.join(loc_name)
-
-        loc_pool = ner_pool[ner_pool['brand']==cur_brand]
         
-        pool_new = loc_pool[~loc_pool['title'].str.contains(regex)]
-        remove_new = loc_pool[loc_pool['title'].str.contains(regex)]
+        # 排除名稱已完成的row
+        if len(loc_name) > 0:
+            regex = '|'.join(loc_name)
+            pool_new = loc_pool[~loc_pool['title'].str.contains(regex)]
+            remove_new = loc_pool[loc_pool['title'].str.contains(regex)]
+        else:
+            pool_new = loc_pool.copy()
+            remove_new = loc_pool[loc_pool.index<0]
         
         ner_pool_new = ner_pool_new.append(pool_new)
         ner_remove_new = ner_remove_new.append(remove_new)
@@ -251,6 +260,7 @@ def master():
     ner_remove = ner_remove.drop_duplicates(subset='title')
     
     ner_pool_new = ner_pool_new.sort_values(by=['brand', 'name']) 
+    ner_pool_new = ner_pool_new.dropna(subset=['link'], axis=0)
         
     # Export
     ner_remove.to_excel(path_ner + 'ner_remove.xlsx',
@@ -259,8 +269,60 @@ def master():
     ner_pool_new.to_excel(path_ner + 'ner_pool.xlsx',
                           index=False, encoding='utf-8-sig') 
     
-    
 
+
+def recycle_removed():
+
+    ner_remove_file = '/Users/aron/Documents/GitHub/Perfume/2_NLP/Export/ner_remove.xlsx'
+    ner_remove = pd.read_excel(ner_remove_file)
+    
+    ner_pool_file = '/Users/aron/Documents/GitHub/Perfume/2_NLP/Export/ner_pool.xlsx'
+    ner_pool = pd.read_excel(ner_pool_file)
+    
+    ner_pool = ner_pool.append(ner_remove)
+    ner_pool = ner_pool.sort_values(by=['brand', 'name'])     
+    ner_pool.to_excel(ner_pool_file, index=False, encoding='utf-8-sig')
+
+    ner_remove = ner_remove[ner_remove.index<0]
+    ner_remove.to_excel(ner_remove_file, index=False, encoding='utf-8-sig')
+
+
+
+
+def refill_link():
+
+    item_file = '/Users/aron/Documents/GitHub/Perfume/1_Crawler/Temp/Archive'
+    files = cbyz.os_get_dir_list(path=item_file, level=0, 
+                                 extensions=['csv'], remove_temp=True)
+    
+    files = files['FILES']    
+    link = pd.DataFrame()
+
+    for i in range(len(files)):
+        
+        df = pd.read_csv(files.loc[i, 'PATH'])
+        link = link.append(df)
+
+    link = link[['title', 'link']]
+    link.columns = ['title', 'link_2']
+
+
+    ner_pool_file = '/Users/aron/Documents/GitHub/Perfume/2_NLP/Export/ner_pool.xlsx'
+    ner_pool = pd.read_excel(ner_pool_file)
+    ner_pool.isnull().sum()
+    
+    
+    ner_pool = ner_pool.merge(link, how='left', on='title')
+    ner_pool = ner_pool \
+        .sort_values(by=['brand', 'link', 'name'], ascending=False) \
+        .drop_duplicates()
+        
+    ner_pool['link'] = np.where(ner_pool['link'].isna(),
+                                ner_pool['link_2'],
+                                ner_pool['link'])
+    
+    ner_pool = ner_pool.drop('link_2', axis=1)
+    ner_pool.to_excel(ner_pool_file, index=False, encoding='utf-8-sig')
 
 if __name__ == '__main__':
     

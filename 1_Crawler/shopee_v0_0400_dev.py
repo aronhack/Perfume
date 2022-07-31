@@ -154,7 +154,7 @@ def crawl_search_result(driver, term, page_limit=20):
         item_df['search_term'] = term_brand
         
         serial = cbyz.get_time_serial(with_time=True)
-        item_df.to_csv(path_temp + '/item_df_' + serial + '.csv',
+        item_df.to_csv(path_temp + '/item_' + serial + '.csv',
                        index=False, encoding='utf-8-sig')
     
     
@@ -299,7 +299,7 @@ def master_note():
 
     # Get all files
     files = cbyz.os_get_dir_list(path=path_temp, level=0, extensions=['csv'], 
-                                 remove_temp=True, contains='item_df')
+                                 remove_temp=True, contains='item_')
     
     files = files['FILES']
     print('Bug - 有些頁面中會有多支香水')
@@ -365,8 +365,15 @@ def master_note():
                 cur_file.loc[j, 'top_note'] = top_note
                 cur_file.loc[j, 'heart_note'] = heart_note
                 cur_file.loc[j, 'base_note'] = base_note
+
+
+
+        # Move to archive
+        # - Place before continue to prevent zero row file not moving to Archvie
+        shutil.move(path_temp + '/' + cur_name,
+                    path_temp + '/To_NLP/' + cur_name)
                     
-            
+        # ...            
         cur_file = cur_file.dropna(subset=['top_note'], axis=0)
         
         if len(cur_file) == 0:
@@ -374,14 +381,11 @@ def master_note():
         
         # Export
         serial = cbyz.get_time_serial(with_time=True)
-        cur_file.to_csv(path_temp + '/master_note_' + serial + '.csv',
+        new_name = cur_name.replace('item_', 'note_')
+        cur_file.to_csv(path_temp + '/Note/' + new_name + '.csv',
                         index=False, encoding='utf-8-sig')
         
         
-        # Move to archive
-        shutil.move(path_temp + '/' + cur_name,
-                    path_temp + '/Archive/' + cur_name)
-    
 
         del cur_file
         print(i, '/', len(files))
@@ -417,22 +421,25 @@ def master():
 
 
 
-# def fix():
 
-#     files = cbyz.os_get_dir_list(path=path_temp + '/20220723', level=0, extensions=['csv'], 
-#                                  remove_temp=True, contains='item_df')
+
+
+
+def temp():
     
-#     files = files['FILES']
+    file = r'/Users/aron/Documents/GitHub/Perfume/1_Crawler/Export'
+    files = cbyz.os_get_dir_list(path=file, level=0, 
+                                 extensions=['csv'], remove_temp=True)
     
-#     for i in range(len(files)):
+    files = files['FILES']
+    
+    for i in range(len(files)):
         
-#         df = pd.read_csv(files.loc[i, 'PATH'])
-#         df['link'] = df['link'].str.replace('https://shopee.tw/search?keyword=%E9%A6%99%E6%B0%B4', 'https://shopee.tw',
-#                                             regex=False)
-#         df.to_csv(path_temp + '/' + files.loc[i, 'FILE_NAME'],
-#                   index=False, encoding='utf-8-sig')
-    
-
+        df = pd.read_csv(files.loc[i, 'PATH'])
+        name = files.loc[i, 'FILE_NAME']
+        name = name.replace('master_note_', 'note_')
+        
+        df.to_csv(file + '/' + name, index=False)
 
 
 if __name__ == '__main__':

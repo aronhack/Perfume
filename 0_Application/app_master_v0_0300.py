@@ -71,10 +71,15 @@ def init():
     
     global data_raw, perfume, note
     global unique_brand, unique_top_note, unique_heart_note, unique_base_note
+    global unique_gender, unique_type
+    
     unique_brand = []
     unique_top_note = []
     unique_heart_note = []
     unique_base_note = []
+    
+    unique_gender = []
+    unique_type = []
 
 
 
@@ -82,6 +87,7 @@ def load_data():
     
     global data_raw, perfume, note, unique_note
     global unique_brand, unique_top_note, unique_heart_note, unique_base_note    
+    global unique_gender, unique_type
     
     # Worklist
     # - Add affiliate link
@@ -182,7 +188,10 @@ def load_data():
     unique_base_note = note[note['note_type']=='base_note']
     unique_base_note = unique_base_note['note'].unique().tolist()
 
-
+    unique_gender = data_raw['gender'].unique().tolist()
+    unique_type = data_raw['type'].unique().tolist()
+    
+    
     # Inspect
     # chk_size = note \
     #             .groupby(['note']) \

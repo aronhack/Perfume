@@ -547,6 +547,7 @@ def version_note():
     # - Add name dropdown - Not yet    
     # - Handle momoshop affiliate link
     # - Fix upper case and lower case issues of brand
+    # - Add line break for the note of table
     
     # Item
     # [https://www.momoshop.com.tw/goods/GoodsDetail.jsp?i_code=3590798&Area=search&mdiv=403&oid=1_6&cid=index&kw=Atlantiqve 寶格麗勁藍水能量男性淡香水](https://www.momoshop.com.tw/goods/GoodsDetail.jsp?i_code=3590798&Area=search&mdiv=403&oid=1_6&cid=index&kw=Atlantiqve%20%E5%AF%B6%E6%A0%BC%E9%BA%97%E5%8B%81%E8%97%8D%E6%B0%B4%E8%83%BD%E9%87%8F%E7%94%B7%E6%80%A7%E6%B7%A1%E9%A6%99%E6%B0%B4#)

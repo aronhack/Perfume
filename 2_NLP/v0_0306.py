@@ -5,6 +5,7 @@
 
 
 import sys
+import shutil
 import pandas as pd
 import numpy as np
 from ckiptagger import data_utils, construct_dictionary, WS, POS, NER
@@ -22,7 +23,9 @@ host = 4
 host = 0
 
 if host == 0:
+    path_crawler = r'/Users/aron/Documents/GitHub/Perfume/1_Crawler'
     path = r'/Users/aron/Documents/GitHub/Perfume/2_NLP'
+    
     dict_file = r'/Users/aron/Documents/GitHub/Perfume/1_Crawler/Resource/dict.xlsx'
     data_file = r'/Users/aron/Documents/GitHub/Perfume/1_Crawler/Resource/data.xls'
     
@@ -34,11 +37,12 @@ elif host == 4:
     
 # Codebase ......
 path_codebase = [r'/Users/aron/Documents/GitHub/Arsenal/',
-                 r'/Users/aron/Documents/GitHub/Codebase_YZ/',
+                 r'/Users/aron/Documents/GitHub/Codebase/',
                  r'/home/aronhack/stock_predict/Function',
                  r'D:\GitHub\Arsenal',
                  r'D:\Data_Mining\Projects\Codebase_YZ',
                  r'/home/jupyter/Arsenal/20220522',
+                 path_crawler + '/Function',
                  path + '/Function']
 
 for i in path_codebase:    
@@ -50,6 +54,62 @@ import crawler_arsenal as crar
     
 path_resource = path + '/Resource'
 path_export = path + '/Export'
+
+
+
+
+def dummy_convert():
+    
+    # title	brand	series	name	name_en	ml	price	search_term	serial
+
+    path_to_nlp = path_crawler + '/Temp/To_NLP'
+    path_crawler_archive = path_crawler + '/Temp/Archive'
+    files = cbyz.os_get_dir_list(path=path_to_nlp, level=0, 
+                                 extensions=['csv'], remove_temp=True)
+    
+    files = files['FILES']
+    
+    # ......
+    result = pd.DataFrame()
+    
+    for i in range(len(files)):
+        
+        cur_file = files.loc[i, 'PATH']
+        cur_name = files.loc[i, 'FILE_NAME']
+        cur_serial = cur_name[5:20]
+        
+        cur_df = pd.read_csv(cur_file)
+        cur_df['serial'] = cur_serial
+        
+        result = result.append(cur_df)
+
+        # Move
+        shutil.move(cur_file,
+                    path_crawler_archive + '/' + cur_name)
+
+
+    result['brand'] = result['search_term']
+    result['series'] = ''
+    result['name'] = ''
+    result['name_en'] = ''
+    result['ml'] = ''
+    result['price'] = ''
+    result = result[['link', 'title', 'brand', 'series', 
+                     'name', 'name_en', 'ml', 'price', 
+                     'search_term', 'serial']]
+
+
+    ner_pool_file = '/Users/aron/Documents/GitHub/Perfume/2_NLP/Export/ner_pool.xlsx'
+    ner_pool = pd.read_excel(ner_pool_file)
+    ner_pool = ner_pool.append(result)
+    
+    ner_pool = ner_pool \
+        .sort_values(by=['brand', 'name']) \
+        .reset_index(drop=True)
+    
+    ner_pool.to_excel(ner_pool_file, index=False, encoding='utf-8-sig')
+    
+
 
 
 # ## Import Custom Dictionary
@@ -798,6 +858,7 @@ def master():
     # v0.0305
     # - Convert ipynb to py
     # v0.0306
+    # - Add dummy convert
     
     
     pass
