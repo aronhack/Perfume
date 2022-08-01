@@ -39,7 +39,7 @@ from flask_caching import Cache
 # 設定工作目錄 .....
 host = 1
 # host = 4
-# host = 0
+host = 0
 
 
 if host == 0:
@@ -325,14 +325,12 @@ table_css = {
 
 
 # %% Application ----
-app = Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
+
+# Iniitialize ......
+external_stylesheets = [dbc.themes.BOOTSTRAP]
+app = Dash(external_stylesheets=external_stylesheets)
 
 ms.master(host)
-# ms.data_raw
-# ms.perfume
-# ms.note
-
-# dashboard(brand=[], top_note=[], heart_note=[], base_note=[])
 
 
 if host == 1:
@@ -508,7 +506,8 @@ app.layout = html.Div([
     html.Div([html.Span(['Powered by ',
                         html.A('PythonAnywhere', 
                                href='https://aronhack.studio/pythonanywhere_dash',
-                               target='_blank')
+                               target='_blank',
+                               className='text-decoration-none')
                         ]),
               html.Span('Created by Angel & Aron', className='d-block'),
              ],
