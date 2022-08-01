@@ -189,7 +189,6 @@ def dashboard(gender=[], perfume_type=[], brand=[], name=[],
     cols = [{"name": i, "id": i} for i in perfume_list.columns]
     cols[3]['presentation'] = 'markdown'
 
-    print('Update, replace link') 
     perfume_list_dict = perfume_list.to_dict('records')    
 
 
@@ -491,7 +490,7 @@ app.layout = html.Div([
                 id='perfume_list',
                 data=tb_data,
                 columns=tb_cols,
-                page_size=10,
+                page_size=6,
                 style_cell={'textAlign': 'left'},
                 ),    
             ], 
@@ -506,8 +505,15 @@ app.layout = html.Div([
     dcc.Graph(id="graph", figure=init_heatmap, 
               config={'displayModeBar': False}),
     
-    html.Div(html.Span('Created by Angel & Aron', className='d-block'),
+    html.Div([html.Span(['Powered by ',
+                        html.A('PythonAnywhere', 
+                               href='https://aronhack.studio/pythonanywhere_dash',
+                               target='_blank')
+                        ]),
+              html.Span('Created by Angel & Aron', className='d-block'),
+             ],
              className='text-center my-2')
+    
     ],
     className='px-4',
 )
@@ -592,10 +598,13 @@ def version_note():
     # - Add brand dropdown
     # v0.0800
     # - Add gender
+    # - Add shopee affiliate link
+    # - Add PythonAnywhere affiliate link
     
     
     # Next
-    # - Add name dropdown - Not yet    
+    # - Add name dropdown - Not yet   
+    # - Set font size smaller
     # - Handle momoshop affiliate link
     # - Fix upper case and lower case issues of brand
     # - Add line break for the note of table

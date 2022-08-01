@@ -106,15 +106,10 @@ def load_data():
     drop_cols = [c for c in cols if 'Unnamed' in c]
     data_raw = data_raw.drop(drop_cols, axis=1)
 
-
-    # Replace old link
-    if 'link2' in data_raw.columns:
-        data_raw['link'] = np.where(data_raw['link2']!='',
-                                    data_raw['link2'],
-                                    data_raw['link'])
+    # Replace
+    data_raw = data_raw.drop(['link', 'aff_link'], axis=1)
+    data_raw = data_raw.rename(columns={'link_display':'link'})
         
-        data_raw = data_raw.drop('link', axis=1)
-
 
     # Replace special character as comma .....
     # Update, add df_replace_special for Chinese characters

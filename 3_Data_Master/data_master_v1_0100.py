@@ -40,6 +40,7 @@ elif host == 4:
 path_codebase = [r'/Users/aron/Documents/GitHub/Arsenal/',
                  r'/Users/aron/Documents/GitHub/Codebase',
                  r'D:\GitHub\Arsenal',
+                 path_crawler,
                  path_crawler + '/Function']
 
 
@@ -51,6 +52,7 @@ for i in path_codebase:
 import codebase_yz as cbyz
 import arsenal as ar
 import crawler_arsenal as crar
+import crawler_v0_0500 as crawler
 
 
 # 自動設定區 -------
@@ -66,26 +68,16 @@ cbyz.os_create_folder(path=[path_resource, path_function,
 pd.set_option('display.max_columns', 30)
  
 
-
-def master():
     
     
-    # v0.0000
-    # - Beginning
-    # v1.0000
-    # - Rewrite successfule rows of NER to a seperate sheet
-    
-    
-    # v2.0000
-    # - affiliate link用銷售量最好的
-    
-    # - Add capitalize() function, and write a function to modify old data
 
 
+def update():
+    
     print('Bug - title中的已售出數字會讓title對不上')
     print('Optimize - prevent 試香 or 小香')
-    
 
+    
 
     # Sheet Data
     url = 'https://docs.google.com/spreadsheets/d/19LhV8lWlXv53yGr3UWg5M3GJMHfE8lVPoxvy_K8rt9U/edit?usp=sharing'
@@ -106,6 +98,11 @@ def master():
     #     .rename(columns={'type':'type_sheet',
     #                      'gender':'gender_sheet'})
     # sheet['priority'] = 0
+
+
+    # Affiliate Link
+    aff_link = ar.gsheets_get_sheet_data(url, worksheet='Affiliate')
+
 
     
     # Note ......
@@ -145,9 +142,12 @@ def master():
     ner = ner[['link', 'title', 'brand', 'name', 'name_en']]
 
 
-    # Combine
-    main_df = ner.merge(note, on=['link', 'title'])
-    main_df = main_df[['title', 'brand', 'name', 'link',
+    # Combine ......
+    main_df = ner \
+            .merge(note, on=['link', 'title']) \
+            .merge(aff_link, how='left', on='link')
+    
+    main_df = main_df[['title', 'brand', 'name', 'link', 'aff_link',
                        'top_note', 'heart_note', 'base_note']]
     
     main_df = main_df[~main_df['name'].isna()]
@@ -178,17 +178,12 @@ def master():
     main_df['base_note'] = main_df['base_note'].str.replace('後味:', '')
     
     
-    # main_df['gender'] = np.where(main_df['gender'].isna(),
-    #                              main_df['gender_sheet'],
-    #                              main_df['gender'])
-
-    # main_df['type'] = np.where(main_df['type'].isna(),
-    #                              main_df['type_sheet'],
-    #                              main_df['type'])
+    main_df['link_display'] = np.where(main_df['aff_link'].isna(),
+                                       main_df['link'],
+                                       main_df['aff_link'])
 
 
-    print('Optimize - there are emoji in the note')
-
+    print('Bug - there are emoji in the note')
     main_df = main_df[main_df['name']!=''] \
         .dropna(subset=['name', 'gender', 'type'], axis=0) \
         .sort_values(by=['name', 'priority']) \
@@ -196,7 +191,8 @@ def master():
         .reset_index(drop=True)
 
     main_df['full_name'] = main_df['name'] + main_df['gender'] + main_df['type']
-    main_df = main_df[['title', 'brand', 'name', 'gender', 'type', 'link',
+    main_df = main_df[['title', 'brand', 'name', 'gender', 'type', 
+                       'link', 'aff_link', 'link_display',
                        'top_note', 'heart_note', 'base_note']]
 
     ar.gsheets_sheet_write(data=main_df, url=url, worksheet='Perfume', 
@@ -270,9 +266,13 @@ def master():
                           index=False, encoding='utf-8-sig') 
     
     print('Bug - 會出現完全相同，但是連結不一樣的資料')
-# VERSACE BRIGHT CRYSTAL香戀水晶女用淡香水(5ml)【小三美日】空運禁送 D993871$250已售出 32彰化縣鹿港鎮找相似	Versace	香戀水晶	女性	淡香水	https://shopee.tw//VERSACE-BRIGHT-CRYSTAL香戀水晶女用淡香水(5ml)【小三美日】空運禁送-D993871-i.11527054.102797573?sp_atk=813e17ae-cd25-4c6a-bacc-74c2259fa13e&xptdk=813e17ae-cd25-4c6a-bacc-74c2259fa13e	石榴、柚子
-# VERSACE 凡賽斯 香戀水晶 女性淡香水 30ml/50ml/90ml 《BEAULY倍莉》 情人節禮物 經典香水滿額折$180$990 - $1,950臺中市南區找相似	Versace	香戀水晶 	女性	淡香水	https://shopee.tw//VERSACE-凡賽斯-香戀水晶-女性淡香水-30ml-50ml-90ml-《BEAULY倍莉》-情人節禮物-經典香水-i.313807339.9660247984?sp_atk=7093d4db-c272-4a47-8cab-500e6de0d065&xptdk=7093d4db-c272-4a47-8cab-500e6de0d065	石榴、柚子    
+    # VERSACE BRIGHT CRYSTAL香戀水晶女用淡香水(5ml)【小三美日】空運禁送 D993871$250已售出 32彰化縣鹿港鎮找相似	Versace	香戀水晶	女性	淡香水	https://shopee.tw//VERSACE-BRIGHT-CRYSTAL香戀水晶女用淡香水(5ml)【小三美日】空運禁送-D993871-i.11527054.102797573?sp_atk=813e17ae-cd25-4c6a-bacc-74c2259fa13e&xptdk=813e17ae-cd25-4c6a-bacc-74c2259fa13e	石榴、柚子
+    # VERSACE 凡賽斯 香戀水晶 女性淡香水 30ml/50ml/90ml 《BEAULY倍莉》 情人節禮物 經典香水滿額折$180$990 - $1,950臺中市南區找相似	Versace	香戀水晶 	女性	淡香水	https://shopee.tw//VERSACE-凡賽斯-香戀水晶-女性淡香水-30ml-50ml-90ml-《BEAULY倍莉》-情人節禮物-經典香水-i.313807339.9660247984?sp_atk=7093d4db-c272-4a47-8cab-500e6de0d065&xptdk=7093d4db-c272-4a47-8cab-500e6de0d065	石榴、柚子    
     
+
+
+
+
 
 
 def recycle_removed():
@@ -327,6 +327,31 @@ def refill_link():
     
     ner_pool = ner_pool.drop('link_2', axis=1)
     ner_pool.to_excel(ner_pool_file, index=False, encoding='utf-8-sig')
+
+
+
+def master():
+
+    # v0.0000
+    # - Beginning
+    # v1.0000
+    # - Rewrite successfule rows of NER to a seperate sheet
+    # v1.0100
+    # - Add affiliate link
+    
+    # Next
+    # - Use items with high sales
+    # - affiliate link用銷售量最好的
+    # - Add capitalize() function, and write a function to modify old data
+    
+    update()
+    
+    # 需要輸入帳密，所以暫時沒辦法全自動化
+    # crawler.master_affiliate()
+
+
+# %% Execute ------
+
 
 if __name__ == '__main__':
     

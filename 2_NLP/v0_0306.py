@@ -1,13 +1,19 @@
-#!/usr/bin/env python
-# coding: utf-8
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on %(date)s
 
-# In[1]:
+@author: %(username)s
+"""
 
 
-import sys
-import shutil
+# % 讀取套件 -------
 import pandas as pd
 import numpy as np
+import sys, time, os, gc
+import shutil
+
+
 from ckiptagger import data_utils, construct_dictionary, WS, POS, NER
 from ckiptagger import construct_dictionary
 from sklearn.feature_extraction import DictVectorizer
@@ -59,6 +65,7 @@ path_export = path + '/Export'
 
 
 def dummy_convert():
+    
     
     # title	brand	series	name	name_en	ml	price	search_term	serial
 
@@ -859,6 +866,9 @@ def master():
     # - Convert ipynb to py
     # v0.0306
     # - Add dummy convert
+    
+    # v0.0400
+    # - merge note dataframe to import efficiency
     
     
     pass

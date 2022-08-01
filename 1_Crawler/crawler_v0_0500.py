@@ -251,6 +251,82 @@ def create_dict():
 # %% Execute ------
 
 
+def master_affiliate():
+
+    
+    from selenium.webdriver.common.by import By
+    
+    # Webdriver ......
+    driver = webdriver.Firefox(executable_path=path + '/geckodriver')
+    
+    aff_site = 'https://affiliate.shopee.tw/dashboard'
+    driver.get(aff_site)
+    
+    # Login manually
+    aff_item = 'https://affiliate.shopee.tw/offer/custom_link'
+    driver.get(aff_item)
+    
+    
+    # Get Data ......
+    url = 'https://docs.google.com/spreadsheets/d/19LhV8lWlXv53yGr3UWg5M3GJMHfE8lVPoxvy_K8rt9U/edit?usp=sharing'
+    link = ar.gsheets_get_sheet_data(url, worksheet='Perfume')
+    link = link[['link']]
+    
+    aff_link = ar.gsheets_get_sheet_data(url, worksheet='Affiliate')
+    aff_link = aff_link[['link', 'aff_link']]
+    
+    
+    # Combine And Generate Link
+    loc_df = cbyz.df_anti_merge(link, aff_link, on='link')
+    loc_df = loc_df.reset_index(drop=True)
+    
+    for i in range(len(loc_df)):
+        
+        textarea = driver \
+                    .find_element(By.CSS_SELECTOR,
+                                  '#customLink_original_url textarea')
+                
+        textarea.clear()
+        textarea.send_keys(loc_df.loc[i, 'link'])
+        
+        
+        # Click Button
+        driver.find_element(By.CSS_SELECTOR, '[type="submit"]').click()
+        time.sleep(3)
+        
+    	# Get Affiliate Link
+        new_link = \
+            driver \
+            .find_element(By.CSS_SELECTOR, '.success-modal-content textarea') \
+            .text
+        
+    	# add link
+        loc_df.loc[i, 'aff_link'] = new_link
+    
+        # Close Modal
+        driver \
+        .find_element(By.CSS_SELECTOR, 'button[aria-label="Close"]') \
+        .click()
+        
+        del new_link
+        time.sleep(1)
+        print(i, '/', len(loc_df))
+    
+    
+    if len(loc_df) > 0:
+        aff_link_new = loc_df[['link', 'aff_link']]
+        aff_link_new = aff_link_new.dropna(axis=0)
+        aff_link_new = aff_link_new[aff_link_new['aff_link']!='']
+    
+        aff_link = pd.concat([aff_link, aff_link_new])    
+        ar.gsheets_sheet_write(data=aff_link, url=url, worksheet='Affiliate', 
+                               start_col='A', start_row=1, 
+                               append=False)
+    
+    driver.close()
+    
+
+
 def master_item():
     
     url = 'https://docs.google.com/spreadsheets/d/19LhV8lWlXv53yGr3UWg5M3GJMHfE8lVPoxvy_K8rt9U/edit?usp=sharing'
@@ -409,6 +485,10 @@ def master():
     # - Add term switch
     
     # v0.0500
+    # - Create affiliate crawler
+    
+    
+    # Worklist
     # - Add gender detection in master_note
     # - 有些香調可能會少打，需要compare length
     # - Remove emoji after merging
@@ -418,10 +498,6 @@ def master():
     
     master_item()
     master_note()
-
-
-
-
 
 
 
@@ -440,6 +516,12 @@ def temp():
         name = name.replace('master_note_', 'note_')
         
         df.to_csv(file + '/' + name, index=False)
+
+
+
+# %% Dev ------
+
+
 
 
 if __name__ == '__main__':
