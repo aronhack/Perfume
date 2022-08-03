@@ -39,7 +39,7 @@ from flask_caching import Cache
 # 設定工作目錄 .....
 host = 1
 # host = 4
-host = 0
+# host = 0
 
 
 if host == 0:
@@ -321,6 +321,11 @@ table_css = {
     # 'margin-right': '5%' 
     }
 
+footer_style = {
+    'font-size':'14px',
+    'text-align':'center',
+    'margin':'12px 0',
+    }
 
 
 
@@ -509,9 +514,18 @@ app.layout = html.Div([
                                target='_blank',
                                className='text-decoration-none')
                         ]),
-              html.Span('Created by Angel & Aron', className='d-block'),
+              html.Span(' - Created by Angel & Aron'),
+              html.Span(['© 2022 ',
+                        html.A('ARON HACK 亞倫害的.', 
+                               href='https://aronhack.studio/aronhack_dash_footer',
+                               target='_blank',
+                               className='text-decoration-none'),
+                        ' All Rights Reserved'],
+                        className='d-block'),
              ],
-             className='text-center my-2')
+             style=footer_style
+             ),
+    
     
     ],
     className='px-4',
@@ -599,27 +613,15 @@ def version_note():
     # - Add gender
     # - Add shopee affiliate link
     # - Add PythonAnywhere affiliate link
+    # - Add all rights reserved text
+    # - Give up to add X-Frame-Options, but add affiliate link to the footer 
+    #   of dashboards.    
     
-    
-    # Next
-    # - Add name dropdown - Not yet   
-    # - Set font size smaller
-    # - Handle momoshop affiliate link
-    # - Fix upper case and lower case issues of brand
-    # - Add line break for the note of table
-    
-    # Item
-    # [https://www.momoshop.com.tw/goods/GoodsDetail.jsp?i_code=3590798&Area=search&mdiv=403&oid=1_6&cid=index&kw=Atlantiqve 寶格麗勁藍水能量男性淡香水](https://www.momoshop.com.tw/goods/GoodsDetail.jsp?i_code=3590798&Area=search&mdiv=403&oid=1_6&cid=index&kw=Atlantiqve%20%E5%AF%B6%E6%A0%BC%E9%BA%97%E5%8B%81%E8%97%8D%E6%B0%B4%E8%83%BD%E9%87%8F%E7%94%B7%E6%80%A7%E6%B7%A1%E9%A6%99%E6%B0%B4#)
-    # Affiliate
-    # [http://www.momoshop.com.tw/goods/GoodsDetail.jsp?osm=league&i_code=3590798&cid=apuad&oid=1&memid=6000020207](http://www.momoshop.com.tw/goods/GoodsDetail.jsp?osm=league&i_code=3590798&cid=apuad&oid=1&memid=6000020207)
-    # oid=1應該是直接用連結, 2是用sticker
-    # cid都是apuad
-
-
-
-
     
     # Worklist
+    # - Add name dropdown - Not yet   
+    # - Fix upper case and lower case issues of brand
+    # - Add line break for the note of table
     # - https://aronhack.pythonanywhere.com/
     # - 防盜機制, if all seslector are empty, then show nothing
     # - Add brand filter
@@ -631,7 +633,19 @@ def version_note():
     #   https://stackoverflow.com/questions/10082155/remove-scrollbar-from-iframe
     #   https://www.benmarshall.me/responsive-iframes/
     # - Optimize, translation
-    # - Optimize, filter the option of dropdown when selectiong others
+    # - Optimize, filter the option of dropdown when selectiong others    
+    
+    
+    
+    # Item
+    # [https://www.momoshop.com.tw/goods/GoodsDetail.jsp?i_code=3590798&Area=search&mdiv=403&oid=1_6&cid=index&kw=Atlantiqve 寶格麗勁藍水能量男性淡香水](https://www.momoshop.com.tw/goods/GoodsDetail.jsp?i_code=3590798&Area=search&mdiv=403&oid=1_6&cid=index&kw=Atlantiqve%20%E5%AF%B6%E6%A0%BC%E9%BA%97%E5%8B%81%E8%97%8D%E6%B0%B4%E8%83%BD%E9%87%8F%E7%94%B7%E6%80%A7%E6%B7%A1%E9%A6%99%E6%B0%B4#)
+    # Affiliate
+    # [http://www.momoshop.com.tw/goods/GoodsDetail.jsp?osm=league&i_code=3590798&cid=apuad&oid=1&memid=6000020207](http://www.momoshop.com.tw/goods/GoodsDetail.jsp?osm=league&i_code=3590798&cid=apuad&oid=1&memid=6000020207)
+    # oid=1應該是直接用連結, 2是用sticker
+    # cid都是apuad
+
+
+
     pass
     
     

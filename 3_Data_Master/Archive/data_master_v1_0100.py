@@ -341,7 +341,7 @@ def master():
     
     # Next
     # - Use items with high sales
-    # - affiliate link用銷售量最好的
+    # - affiliate link用銷售量最好的，parse已售出
     # - Add capitalize() function, and write a function to modify old data
     
     update()
