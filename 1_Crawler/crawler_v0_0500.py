@@ -471,6 +471,8 @@ def master_note():
 
 
 def master():
+    
+    
     # Simulate human behaviors
     # https://www.selenium.dev/documentation/webdriver/actions_api/mouse/
     # https://stackoverflow.com/questions/51340300/simulate-mouse-movements-in-selenium-using-python
