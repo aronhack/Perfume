@@ -39,7 +39,7 @@ from flask_caching import Cache
 # 設定工作目錄 .....
 host = 1
 # host = 4
-# host = 0
+host = 0
 
 
 if host == 0:
@@ -334,30 +334,11 @@ footer_style = {
 # Iniitialize ......
 external_stylesheets = [dbc.themes.BOOTSTRAP]
 
-# <!-- Google AdSense -->
-# <script data-ad-client="ca-pub-3866010510626398" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 
-# <!-- AdSense AMP Auto Ad -->
-# <script async custom-element="amp-auto-ads"
-#         src="https://cdn.ampproject.org/v0/amp-auto-ads-0.1.js">
-# </script>
-
-# <!-- AdSense AMP Auto Ad -->
-# <amp-auto-ads type="adsense" data-ad-client="ca-pub-3866010510626398">
-# </amp-auto-ads>
-
-external_scripts = [
-    {
-        'src': 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js',
-        # 'integrity': 'sha256-Qqd/EfdABZUcAxjOkMi8eGEivtdTkh3b65xCZL4qAQA=',
-        # 'crossorigin': 'anonymous'
-    },
-    # {
-    #  'src': 'https://cdn.ampproject.org/v0/amp-auto-ads-0.1.js'
-    #  }
-]
-
-app = Dash(external_stylesheets=external_stylesheets)
+app = Dash(meta_tags=[
+                {"name": "viewport", "content": "width=device-width, initial-scale=1"}
+            ],
+            external_stylesheets=external_stylesheets)
 ms.master(host)
 
 
