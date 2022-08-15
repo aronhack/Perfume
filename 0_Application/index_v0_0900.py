@@ -39,7 +39,7 @@ from flask_caching import Cache
 # 設定工作目錄 .....
 host = 1
 # host = 4
-host = 0
+# host = 0
 
 
 if host == 0:
@@ -355,7 +355,45 @@ tb_data, tb_cols, init_heatmap_data, init_heatmap = dashboard()
 
 
 
+
+ah_logo = r'https://aronhack.com/wp-content/themes/aronhack/assets/header/logo_v2_wide.png'
+
 app.layout = html.Div([
+    
+    html.Div( 
+    html.Div([
+        html.Div(html.A(html.Img(src=ah_logo,
+                                 style={'width':'110px'},
+                                 className='my-4 ',),
+                        href='https://perfume.aronhack.com/',
+                        ),
+                 className='col-6'
+                 ),
+        
+        html.Div(html.Nav([html.A('首頁', 
+                                  className="nav-item nav-link text-dark",
+                                  href='https://aronhack.com/zh/home-zh/'),
+                           html.A('說明', 
+                                  className="nav-item nav-link text-dark", 
+                                  href='https://aronhack.com/zh/the-secrets-of-perfume-making-manual/')
+                           ],
+                          className = 'nav nav-pills ', 
+            ),
+            className='col-6',
+            style={'justify-content':'right',
+                   'align-items':'center',
+                   'display': 'flex'},
+            ),
+        ],
+        className='row'
+        ),
+    className=''
+    ),
+    
+    html.H1('調香秘策 – 知名品牌香水調性分析與搭配',
+            style={'font-size':'1.8em',
+                   'margin':'30px 0'}),
+
     
     dcc.Location(id='url', refresh=False),
     html.Div(id='debug'),
@@ -616,6 +654,10 @@ def version_note():
     # - Add all rights reserved text
     # - Give up to add X-Frame-Options, but add affiliate link to the footer 
     #   of dashboards.    
+    
+    
+    # v0.0900
+    # - To redirect website to application
     
     
     # Worklist

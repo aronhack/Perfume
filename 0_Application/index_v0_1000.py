@@ -39,7 +39,7 @@ from flask_caching import Cache
 # 設定工作目錄 .....
 host = 1
 # host = 4
-host = 0
+# host = 0
 
 
 if host == 0:
@@ -333,8 +333,31 @@ footer_style = {
 
 # Iniitialize ......
 external_stylesheets = [dbc.themes.BOOTSTRAP]
-app = Dash(external_stylesheets=external_stylesheets)
 
+# <!-- Google AdSense -->
+# <script data-ad-client="ca-pub-3866010510626398" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+
+# <!-- AdSense AMP Auto Ad -->
+# <script async custom-element="amp-auto-ads"
+#         src="https://cdn.ampproject.org/v0/amp-auto-ads-0.1.js">
+# </script>
+
+# <!-- AdSense AMP Auto Ad -->
+# <amp-auto-ads type="adsense" data-ad-client="ca-pub-3866010510626398">
+# </amp-auto-ads>
+
+external_scripts = [
+    {
+        'src': 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js',
+        # 'integrity': 'sha256-Qqd/EfdABZUcAxjOkMi8eGEivtdTkh3b65xCZL4qAQA=',
+        # 'crossorigin': 'anonymous'
+    },
+    # {
+    #  'src': 'https://cdn.ampproject.org/v0/amp-auto-ads-0.1.js'
+    #  }
+]
+
+app = Dash(external_stylesheets=external_stylesheets)
 ms.master(host)
 
 
@@ -352,10 +375,113 @@ if host == 1:
 # tb_data = ms.perfume.to_dict('records')
 
 tb_data, tb_cols, init_heatmap_data, init_heatmap = dashboard()
+ah_logo = r'https://aronhack.com/wp-content/themes/aronhack/assets/header/logo_v2_wide.png'
+
+# app.scripts.append_script({
+#     "external_url": my_js_url
+# }) 
+
+
+
+# https://stackoverflow.com/questions/61305223/how-to-add-google-analytics-gtag-to-my-python-dash-app
+app.index_string = '''
+<!DOCTYPE html>
+<html>
+    <head>
+        <!-- Google AdSense -->
+        <script data-ad-client="ca-pub-3866010510626398" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+        
+        <!-- AdSense AMP Auto Ad -->
+        <script async custom-element="amp-auto-ads"
+                src="https://cdn.ampproject.org/v0/amp-auto-ads-0.1.js">
+        </script>
+        {%metas%}
+        <title>調香秘策 – 知名品牌香水調性分析與搭配</title>
+        {%favicon%}
+        {%css%}
+    </head>
+    <body>
+
+        <div align="center">
+            <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3866010510626398"
+                 crossorigin="anonymous"></script>
+            <!-- Perfume Dashboard Header Ad -->
+            <ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-client="ca-pub-3866010510626398"
+                 data-ad-slot="2109170626"
+                 data-ad-format="auto"
+                 data-full-width-responsive="true"></ins>
+            <script>
+                 (adsbygoogle = window.adsbygoogle || []).push({});
+            </script>        
+        </div>
+
+        {%app_entry%}
+
+        <div align="center">
+            <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3866010510626398"
+                 crossorigin="anonymous"></script>
+            <!-- Perfume Footer Ad -->
+            <ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-client="ca-pub-3866010510626398"
+                 data-ad-slot="3745422594"
+                 data-ad-format="auto"
+                 data-full-width-responsive="true"></ins>
+            <script>
+                 (adsbygoogle = window.adsbygoogle || []).push({});
+            </script>     
+        </div>
+
+
+        <footer>
+            {%config%}
+            {%scripts%}
+            {%renderer%}
+        </footer>
+    </body>
+</html>
+'''
 
 
 
 app.layout = html.Div([
+    
+    html.Div( 
+    html.Div([
+        html.Div(html.A(html.Img(src=ah_logo,
+                                 style={'width':'110px'},
+                                 className='my-4 ',),
+                        href='https://perfume.aronhack.com/',
+                        ),
+                 className='col-6'
+                 ),
+        
+        html.Div(html.Nav([html.A('首頁', 
+                                  className="nav-item nav-link text-dark",
+                                  href='https://aronhack.com/zh/home-zh/'),
+                           html.A('說明', 
+                                  className="nav-item nav-link text-dark", 
+                                  href='https://aronhack.com/zh/the-secrets-of-perfume-making-manual/')
+                           ],
+                          className = 'nav nav-pills ', 
+            ),
+            className='col-6',
+            style={'justify-content':'right',
+                   'align-items':'center',
+                   'display': 'flex'},
+            ),
+        ],
+        className='row'
+        ),
+    className=''
+    ),
+    
+    html.H1('調香秘策 – 知名品牌香水調性分析與搭配',
+            style={'font-size':'1.8em',
+                   'margin':'30px 0'}),
+
     
     dcc.Location(id='url', refresh=False),
     html.Div(id='debug'),
@@ -616,6 +742,10 @@ def version_note():
     # - Add all rights reserved text
     # - Give up to add X-Frame-Options, but add affiliate link to the footer 
     #   of dashboards.    
+    # v0.0900
+    # - To redirect website to application
+    # v0.1000
+    # - Add AdSense code
     
     
     # Worklist
