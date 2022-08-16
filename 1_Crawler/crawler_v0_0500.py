@@ -343,9 +343,8 @@ def master_item():
     # If show error message as below, download the file again
     # > WebDriverException: 'geckodriver' executable may have wrong permissions. 
     driver = webdriver.Firefox(executable_path=path + '/geckodriver')
-    
     driver.get(shopee_search)
-    
+    time.sleep(4)
     
     for i in range(len(terms)):
         term = terms.loc[i, 'term']
