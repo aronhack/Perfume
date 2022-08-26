@@ -163,6 +163,13 @@ def update():
     main_df = main_df[~main_df['name'].isna()]
     
     
+    assert 2 < 1, 'Fix unicode issues'
+    main_df[main_df['name']=='藍茶']
+    
+    cbyz.unicode_filter
+    need to create dataframe version
+    
+    
     print('Optimize this with character set')
     main_df['top_note'] = main_df['top_note'].str.replace('前調:', '')
     main_df['top_note'] = main_df['top_note'].str.replace('前味:', '')
@@ -361,6 +368,10 @@ def master():
     # - Add affiliate link
     # v1.0200
     # - Indicate row with note
+    
+    # v1.0201
+    # - Fix unicode issues
+    
     
     # Next
     # - Use items with high sales
