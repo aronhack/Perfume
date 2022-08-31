@@ -163,12 +163,43 @@ def update():
     main_df = main_df[~main_df['name'].isna()]
     
     
-    assert 2 < 1, 'Fix unicode issues'
-    main_df[main_df['name']=='藍茶']
+    # Try to build a function for DataFrame, but failed ......
     
-    cbyz.unicode_filter
-    need to create dataframe version
+    # test_df = main_df[main_df['name']=='藍茶'].reset_index(drop=True)
+    # test_str = test_df.loc[0, 'top_note']
     
+    # import re
+    pat = r'(\u0000-\u007A|\u4E00-\u9FFF|\u3000-\u303F)'
+    # pat = r'(\u0000-\u007A)'
+    # pat = r'\u0020-\u00d7ff'
+    
+    # filtrate = re.compile(u'[\u0020-\u00d7ff]')
+    # filtrate = re.compile(u'[^' + pat + ']')
+    
+    # cbyz.unicode_filter(test_str, 
+    #                     regex='(\u0000-\u007A|\u4E00-\u9FFF|\u3000-\u303F)')
+    
+    # test_df['top_note'].str.replace(filtrate, '', regex=True)
+    # test_df['top_note'].str.replace('味', '')
+    # test_df['top_note'].str.replace('[\u0000-\u007A]', '', regex=True)
+    
+    # test_df['top_note'].str.decode(encoding='UTF-8')
+    # test_df['top_note'].str.decode(encoding='ASCII')
+    
+    # test_df['top_note'].map(lambda x: x.encode('unicode-escape').decode('utf-8'))
+    
+    # test_df['top_note'] \
+    #     .map(lambda x: x.encode('unicode-escape').decode('utf-8')) \
+    #     .str.replace(filtrate, '', regex=True) \
+    #     .astype('str')
+
+
+    loop_cols = ['top_note', 'heart_note', 'base_note']
+    
+    for c in loop_cols:
+        main_df[c] = main_df[c].apply(cbyz.unicode_filter, regex=pat)
+
+
     
     print('Optimize this with character set')
     main_df['top_note'] = main_df['top_note'].str.replace('前調:', '')
@@ -177,9 +208,6 @@ def update():
     main_df['heart_note'] = main_df['heart_note'].str.replace('中味:', '')
     main_df['base_note'] = main_df['base_note'].str.replace('後調:', '')
     main_df['base_note'] = main_df['base_note'].str.replace('後味:', '')
-    
-    
-    
     
     
     

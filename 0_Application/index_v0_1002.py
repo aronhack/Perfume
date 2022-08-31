@@ -375,10 +375,19 @@ app.index_string = '''
 <!DOCTYPE html>
 <html>
     <head>
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-PCFN0C3YR7"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+        
+          gtag('config', 'G-PCFN0C3YR7');
+        </script>
+    
         <!-- Google AdSense -->
         <script data-ad-client="ca-pub-3866010510626398" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
         
-
         {%metas%}
         <title>調香秘策 – 知名品牌香水調性分析與搭配</title>
         {%favicon%}
@@ -386,7 +395,7 @@ app.index_string = '''
     </head>
     <body>
 
-        <div align="center">
+        <div align="center" class="mt-4">
             <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3866010510626398"
                  crossorigin="anonymous"></script>
             <!-- Perfume Dashboard Header Ad -->
@@ -403,7 +412,7 @@ app.index_string = '''
 
         {%app_entry%}
 
-        <div align="center">
+        <div align="center" class="mb-4">
             <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3866010510626398"
                  crossorigin="anonymous"></script>
             <!-- Perfume Footer Ad -->
@@ -733,7 +742,7 @@ def version_note():
     
 
     # v0.1002
-    # - 還沒想好這個版本要改什麼
+    # - Add GA4
 
     
     # Worklist
