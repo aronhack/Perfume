@@ -389,7 +389,7 @@ app.index_string = '''
         <script data-ad-client="ca-pub-3866010510626398" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
         
         {%metas%}
-        <title>調香秘策 – 知名品牌香水調性分析與搭配</title>
+        <title>命定香水 – 知名品牌香水調性分析與搭配</title>
         {%favicon%}
         {%css%}
     </head>
@@ -471,7 +471,7 @@ app.layout = html.Div([
     className=''
     ),
     
-    html.H1('調香秘策 – 知名品牌香水調性分析與搭配',
+    html.H1('命定香水 – 知名品牌香水調性分析與搭配',
             style={'font-size':'1.8em',
                    'margin':'30px 0'}),
 
